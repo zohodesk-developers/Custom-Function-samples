@@ -1,0 +1,175 @@
+/*
+This custom code to send every happiness rating received in the ticket (good or bad) to concern ticket owner cliq chat and the custom cliq message often changed..
+
+Prequest:
+Customer to create dummy contact and replace dummy contact id in code. But the contact should have customer number field and which is initially updated with value 
+
+[Sunday - 0, Monday - 1, Tuesday - 2, Wednessday - 3 Thursday - 4, Friday - 5, Saturday - 6] as per current day and mention the custom field API name in code 
+mentioned place
+
+*/
+
+
+Module : Ticket
+
+Argument: 
+Name : ticketID - Value : Ticket Id
+
+Sample Code:
+
+ORGID = "644088596";//replace ORGID
+agentName = "";
+dummycontactID = "4000724790355";//replace Dummy contactId. This might be any test contact which should contain Numeric Field Type
+getdummycontactInfo = zoho.desk.getRecordById(ORGID.toLong(),”contacts”,dummycontactID.toLong());
+currentDay = getdummycontactInfo.get("cf").get("cf_total_paid_customers");
+//cf_total_paid_customers - replace API name of Numeric field in contact module
+currentDay = currentDay.toString().trim();
+info currentDay;
+CurrentTime = zoho.currenttime.toString("dd-MMM-yyyy HH:mm:ss","GMT+5:30");
+CurrentTime = CurrentTime.toDateTime();
+info CurrentTime;
+/*currentDay = CurrentTime.getDayOfWeek();
+info currentDay;
+currentDay = currentDay.toString();*/
+customIMG = Map();
+customIMG.put("1","https://media.giphy.com/media/l1ugo9PYts0eHIRDG/giphy.gif");
+customIMG.put("2","https://media.giphy.com/media/LkrrcqLMJwEtTHE5v7/giphy.gif");
+customIMG.put("3","https://media.giphy.com/media/U7L2ERMbzXtt6b6g7c/giphy.gif");
+customIMG.put("4","https://media.giphy.com/media/eHRwLGsS6QDViZhp2P/giphy.gif");
+customIMG.put("5","https://media.giphy.com/media/3oz8xxMxaYh11PXifu/giphy.gif");
+customIMG.put("6","https://media.giphy.com/media/sXgNCQ6qvKVm8/giphy.gif");
+customIMG.put("7","https://media.giphy.com/media/3o7btSwIBt8krJGXoA/giphy.gif");
+customIMG.put("8","https://media.giphy.com/media/3ohhwi25ISXC7Z4tMs/giphy.gif");
+customIMG.put("9","https://media.giphy.com/media/ArXgOIt2IYDqU/giphy.gif");
+customIMG.put("10","https://media.giphy.com/media/TE3ZlXmfr5psI/giphy.gif");
+customIMG.put("11","https://media.giphy.com/media/l0MYM7umPHrEq15S0/giphy.gif");
+customIMG.put("12","https://media.giphy.com/media/eHRwLGsS6QDViZhp2P/giphy.gif");
+cardimage = customIMG.get(currentDay);
+info cardimage;
+getTicketDetails = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/tickets/" + ticketID + "?include=contacts,products,assignee,departments,team"
+	type :GET
+  connection : "deskoperation"
+];
+//info getTicketDetails;
+ticketNumber = getTicketDetails.get("ticketNumber");
+webURL = getTicketDetails.get("webUrl");
+currentAgentEmail = getTicketDetails.get("assignee").get("email").trim();
+getThreadDetails = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/tickets/" + ticketID + "/latestThread"
+	type :GET
+	connection : “deskoperation"
+];
+Content = getThreadDetails.get("content");
+//info Content;
+summary = getThreadDetails.get("summary");
+//info summary;
+if(Content.containsIgnoreCase("unfortunate!") || Content.containsIgnoreCase("just made my day!") || Content.containsIgnoreCase("not good enough!"))
+{
+	EscalationType = Content.toCollection("<");
+	//info Content;
+	//info EscalationType;
+	finalvalue = "";
+	for each  myvalue in EscalationType
+	{
+		mmvalue = myvalue.toString();
+		len = mmvalue.length();
+		leng = mmvalue.indexOf(">");
+		temp = mmvalue.subText(mmvalue.indexOf(">") + 1);
+		finalvalue = finalvalue + temp + "  ";
+	}
+	//info finalvalue;
+	finalvalue = finalvalue.replaceAll("&#x7c;","|");
+}
+else
+{
+	finalvalue = summary.trim();
+}
+//info finalvalue;
+finalvalue = finalvalue.replaceAll("request for support provided by","response from");
+finalvalue1 = finalvalue.trim();
+if(finalvalue.getOccurenceCount("show response") > 0)
+{
+	finalvalue = finalvalue.subText(finalvalue.indexOf("response from") + 8,finalvalue.indexOf("show response") + 14);
+}
+else
+{
+	finalvalue = finalvalue.subText(finalvalue.indexOf("response from") + 8,finalvalue.length());
+}
+finalvalue = finalvalue.replaceAll("&quot;","").replaceAll("&#39;","'");
+//info finalvalue;
+if(finalvalue.getOccurenceCount("Zoho Desk") > 0)
+{
+	customerContent = finalvalue.subText(finalvalue.indexOf("Zoho Desk") + 10,finalvalue.indexOf("show response"));
+}
+else
+{
+	customerContent = finalvalue.subText(finalvalue.indexOf(".") + 1,finalvalue.indexOf("show response"));
+}
+//customerContent = finalvalue.subText(finalvalue.indexOf("Zoho Desk") + 10,finalvalue.indexOf("show response"));
+info customerContent;
+customerContent = customerContent.remove("Wow! You just made my day!").replaceAll("&#x21;","").replaceAll("&#x3a;","");
+customerContent = customerContent.remove("Ah, that's unfortunate! Could you please tell us where we can improve?");
+customerContent = customerContent.remove("Oh, that's not good enough! Can you please tell us where we can improve?");
+customerContent = customerContent.trim();
+customerContentlength = customerContent.length();
+info customerContent;
+agentEmail=currentAgentEmail.trim();
+if(agentEmail != "" && agentEmail != null)
+{
+	customMsg = Map();
+	customMsg.put("1","Great job, " + agentName + "! Your support game is on point.");
+	customMsg.put("2","Fantastic, " + agentName + "! Roses are red, violets are blue. The world needs many more developers like you!.");
+	customMsg.put("3","Way to go, " + agentName + "! Your dedication and diligence inspires us. ");
+	customMsg.put("4","Good job, " + agentName + "! You should consider offering a Customer Support-101 course.");
+	customMsg.put("5","Outstanding effort, " + agentName + "! You’re one of the most reliable go-to developers in our team.");
+	customMsg.put("6","Kudos, " + agentName + ". You are our favorite developer and firefighter all rolled into one.");
+	customMsg.put("7","Hurrah, " + agentName + "! We're sure you are going to be the captain one day.");
+	customMsg.put("8","Glory to you, " + agentName + "! You are the king of good times.");
+	customMsg.put("9","Big applause to you, " + agentName + "! We couldn't have done it without you.");
+	customMsg.put("10",agentName + "! you have won the heart of a customer today. Wow! Congrats and keep doing your fantastic job.");
+	customMsg.put("11","All honor to you " + agentName + "! You're the most compassionate of all here.");
+	customMsg.put("12",agentName + "! Customer appreciated your work, you have made a customer happy today, Congrats..");
+	cardmessage = customMsg.get(currentDay);
+	if(finalvalue.containsIgnoreCase("just made my day!"))
+	{
+		//agentName = finalvalue.subText(finalvalue.indexOf("from") + 4,finalvalue.indexOf("Desk."));
+		rating = "Good";
+		header = Map();
+		header.put("Content-Type","application/html");
+		formatted_msg = {"text":"*\"" + customerContent + "\"* ." + cardmessage + " :happy:","bot":{"name":"Support Team","image":"https://sm.pcmag.com/t/pcmag_in/review/z/zoho-desk/zoho-desk_y33f.1280.jpg"},"card":{"title":"Voice of the customer :smile:","thumbnail":cardimage,"theme":"prompt"},"buttons":{{"label":"#" + ticketNumber,"hint":"Ticket","type":"+","action":{"type":"open.url","data":{"web":webURL}}}}};
+	}
+    if(finalvalue.containsIgnoreCase("unfortunate!") || finalvalue.containsIgnoreCase("not good enough!"))
+	{
+	customerContent = customerContent.remove(":smile:");
+	//agentName = finalvalue1.subText(finalvalue1.indexOf("from") + 4,finalvalue1.indexOf("Desk."));
+	rating = "Bad";
+	header = Map();
+	header.put("Content-Type","application/html");
+	formatted_msg = {"text":"Attention! Team, we just received a Negative Rating from the customer for the below ticket! Kindly Follow-up immediately! " + 	customerContent,"bot":{"name":"Support Team","image":"https://sm.pcmag.com/t/pcmag_in/review/z/zoho-desk/zoho-desk_y33f.1280.jpg"},"card":{"title":"New Rating Received :sad:","thumbnail":"https://media.giphy.com/media/NTY1kHmcLsCsg/giphy.gif","theme":"prompt"},"buttons":{{"label":"#" + ticketNumber,"hint":"Ticket","type":"+","action":{"type":"open.url","data":{"web":webURL}}}}};
+	}
+	info formatted_msg;
+
+	response = invokeurl
+	[
+		url :"https://cliq.zoho.com/api/v2/buddies/" + agentEmail + "/message"
+		type :POST
+		parameters:formatted_msg.toString()
+		headers:header
+    connection : "cliqoperation"
+	];
+if(currentDay == "12")
+{
+	currentDay = "1";
+}
+else
+{
+	currentDay = currentDay.toNumber();
+	currentDay = currentDay + 1;
+}
+jsonString = {"cf":{"cf_total_paid_customers":currentDay.toString()}};
+//cf_total_paid_customers - replace API name of Numeric field in contact module
+updateContact = zoho.desk.update(ORDID.toLogn(),”contacts”,dummycontactID.toLong(),jsonString);
+}
