@@ -1,0 +1,67 @@
+/*
+This function assign ticket to specific agent when ticket moved to another department
+Connection Creation:
+1) Setup->Connection
+2) Create New connection
+3) Choose ZohoOAuth Service
+4) Enter connection name and connection link name
+5) Choose desk related scopes
+6) Create and Connect then replace connection linkname in code instead “deskoperation”
+*/
+
+
+Module : Ticket
+
+Argument: 
+Name : ticketID - Value : Ticket Id
+
+Sample Code:
+orgId = "20060654830";//replace ORGID
+moved=false;
+agentEmail="test@gmail.com";// specify the agent email address here
+getAgentInfo = invokeurl
+[
+	url :"https://desk.zoho.eu/api/v1/agents?searchStr=" + encodeUrl(agentEmail)
+	type :GET
+	connection : "deskoperation"
+];
+agentID = getAgentInfo.get("data").get(0).get("id");
+getTicketHistory = invokeurl
+[
+	url :"https://desk.zoho.eu/api/v1/tickets/" + ticketID + "/history"
+	type :GET
+	connection : "deskoperation"
+];
+//info getTicketHistory;
+ticketHistory = getTicketHistory.toList();
+info ticketHistory;
+for each  history in ticketHistory
+{
+	if(history.get("name").toString().equalsIgnoreCase("Department_Moved"))
+	{
+        historychanges = history.get("changes").toString();
+		for each  hchanges in historychanges
+		{
+			if(hchanges.get("field").toString().equalsIgnoreCase("field"))
+			{
+				oldDepartment = hchanges.get("oldValue");
+				newDepartment = hchanges.get("newValue");
+			}
+		}
+        moved=true;
+		break;
+	}
+}
+if(moved) 
+{
+info "Moved";
+jsonString = {"assigneeId":agentID};
+updateTicket = invokeurl
+[
+	url :"https://desk.zoho.eu/api/v1/tickets/" + ticketID
+	type :POST
+	parameters:jsonString.toString()
+	connection : "deskoperation"
+];
+info updateTicket;
+}
