@@ -1,0 +1,63 @@
+/*
+Push data from desk to creator using connection
+
+Connection Creation:
+1) Setup->Connection
+2) Create New connection
+3) Choose ZohoOAuth Service
+4) Enter connection name and connection link name
+5) Choose desk related scopes
+6) Create and Connect then replace connection linkname in code instead “deskoperation” and "creatoroperation"
+
+SCOPE for deskoperation : Desk.contacts.READ, Desk.contacts.UPDATE 
+
+SCOPE for creatoroperation:  ZohoCreator.form.CREATE
+*/
+Module : Ticket
+
+Argument: Attachment added
+
+Sample code:
+
+orgId = "644088596";
+getContactDetails = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/contacts/" + contactID
+	type :GET
+	connection:"deskoperation"
+];
+lastName = getContactDetails.get("lastName");
+semail = getContactDetails.get("secondaryEmail");
+phone = getContactDetails.get("phone");
+mobile = getContactDetails.get("mobile");
+type = getContactDetails.get("type");
+twitter = getContactDetails.get("twitter");
+faceBook = getContactDetails.get("facebook");
+param = Map();
+param.put("Contact_Person",lastName.trim());
+param.put("Email",semail.trim());
+param.put("Phone",phone.trim());
+param.put("Mobile",mobile.trim());
+param.put("Type",type.trim());
+param.put("Account_Name",accountName.trim());
+param.put("Twitter",twitter.trim());
+param.put("Facebook",faceBook.trim());
+param.put("Contact_Owner",contactOwner.trim());
+param1=Map();
+param1.put("data",param);
+addDetails = invokeurl
+[
+	url :"https://creator.zoho.com/api/v2/<account_owner_name>/<app_link_name>/form/<form_link_name>"
+	type :POST
+	parameters:param1
+	connection:"creatoroperation"
+];
+creatorID = addDetails.get("id").toString();
+jsonString = {"customFields":{"creatorID":creatorID}};
+updateContact = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/contacts/" + contactID
+	type :PATCH
+	parameters:jsonString.toString()
+	connection:"deskoperation"
+];

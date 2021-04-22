@@ -1,0 +1,51 @@
+/*Customer must create OldTicketNumber, previousClosedTime custom field on Ticket Module (Field type as TEXT type)
+
+Whenever customer reply received it will verify whether its received within 24hours then ignore else it will split ticket as new one 
+
+Connection Creation:
+1) Setup->Connection
+2) Create New connection
+3) Choose ZohoOAuth Service
+4) Enter connection name and connection link name
+5) Choose desk related scopes
+6) Create and Connect then replace connection linkname in code instead “deskoperation”
+
+SCOPE : Desk.tickets.READ, Desk.tickets.UPDATE, Desk.tickets.CREATE
+
+*/
+Module: Ticket
+
+Argument:
+Name :ticketID - Value : Ticket Id
+
+
+Sample code:
+
+numberOfHours = 24;//please specify the hours to reopen
+ORGID = 644088596;//replace with your ORGID
+ threadResponse = invokeurl
+ [
+ url :"https://desk.zoho.com/api/v1/tickets/" + ticketID + "/threads"
+ type :GET
+connection:"deskoperation"
+ ];
+ if(threadResponse.get("data") != null)
+ {
+ latestThreadID = threadResponse.get("data").get(0).get("id");
+ splitTicketResponse = invokeurl
+ [
+ url :"https://desk.zoho.com/api/v1/tickets/" + ticketID + "/threads/" + latestThreadID + "/split"
+ type :POST
+ connection:"deskoperation"
+ ];
+ info "splitTicketResponse ::::" + splitTicketResponse;
+ info "======================================================";
+ jsonString = {"status":"Closed"};
+ closeTicketResponse = invokeurl
+ [
+	url :"https://desk.zoho.com/api/v1/tickets/" + ticketID
+	type :PATCH
+	parameters:jsonString.toString()
+	connection:"deskoperation"
+ ];
+ }

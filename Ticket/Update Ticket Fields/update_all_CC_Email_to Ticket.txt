@@ -1,0 +1,63 @@
+/*
+To update all incoming thread CC addresses into ticket customFields
+
+Connection Creation:
+1) Setup->Connection
+2) Create New connection
+3) Choose ZohoOAuth Service
+4) Enter connection name and connection link name
+5) Choose desk related scopes
+6) Create and Connect then replace connection linkname in code instead “deskoperation”
+
+SCOPE :Desk.tickets.UPDATE, Desk.tickets.READ
+*/
+
+Module : Ticket
+
+
+Argument:
+Name : ticketID - Value : Ticket Id
+Name : emailaddress - Value - Custom CC_Field Name
+
+Sample Code:
+
+ORGID = "644088596";//replace ORGID
+getTicket = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/tickets/" + ticketID + "/threads"
+	type :GET
+	connection :"deskoperation"
+];
+//info getTicket;
+latestThreadID = getTicket.get("data").get(0).get("id");
+//info latestThreadID;
+getTicketThread = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/tickets/" + ticketID + "/threads/" + latestThreadID
+	type :GET
+	connection :"deskoperation"
+];
+//info getTicketThread;
+ccAddress = getTicketThread.get("cc");
+CCemail = ccAddress.toCollection("<");
+for each  email in CCemail
+{
+   if(email.toString().contains("@")){
+       em = email.subText(0,email.indexOf(">"));
+       if(emailAddress.getOccurenceCount(em) <= 0){
+           emailAddress = emailAddress+","+em.trim();
+	   }
+    }
+}
+//leng = emailAddress.length();
+//emailAddress = emailAddress.subText(1,leng - 1);
+//info emailAddress;
+jsonString = {"cf":{"cf_cc_address":emailAddress}};
+UpdateTicket = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/tickets/" + ticketID
+	type :PATCH
+	parameters:jsonString.toString()
+	connection :"deskoperation"
+];
+info UpdateTicket;

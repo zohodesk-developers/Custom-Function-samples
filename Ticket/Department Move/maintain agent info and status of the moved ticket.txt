@@ -1,0 +1,84 @@
+/*
+
+When ticket moved to another department maintain previous department agent and status info into moved to ticket
+
+Connection Creation:
+1) Setup->Connection
+2) Create New connection
+3) Choose ZohoOAuth Service
+4) Enter connection name and connection link name
+5) Choose desk related scopes
+6) Create and Connect then replace connection linkname in code instead “deskoperation”
+
+SCOPE :Desk.tickets.UPDATE , Desk.tickets.READ
+*/
+
+Module : Ticket
+
+Argument:
+Name : ticketID - Value : Ticket Id
+
+Sample Code:
+orgId = "644088596";
+//replace orgID
+getTicketHistory = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/tickets/" + ticketID + "/history”
+	type :GET
+        connection : “deskoperation”
+];
+//info getTicketHistory;
+ticketHistory = getTicketHistory.toList();
+info ticketHistory;
+currentStatus = "";
+currentTicketOwner = "";
+for each  history in ticketHistory
+{
+	if(history.get("name").toString().equalsIgnoreCase("Department_Moved"))
+	{
+		historychanges = history.get("changes").toString();
+		for each  hchanges in historychanges
+		{
+			if(hchanges.get("field").toString().equalsIgnoreCase("Case Owner"))
+			{
+				currentTicketOwner = hchanges.get("oldValue");
+			}
+			if(hchanges.get("field").toString().equalsIgnoreCase("Status"))
+			{
+				currentStatus = hchanges.get("oldValue");
+			}
+		}
+		info currentStatus;
+		info currentTicketOwner;
+		break;
+	}
+	if(history.get("name").toString().equalsIgnoreCase("Assignrule_Updated_Ticket"))
+	{
+		historychanges = history.get("changes").toString();
+		for each  hchanges in historychanges
+		{
+			if(hchanges.get("field").toString().equalsIgnoreCase("Case Owner"))
+			{
+				currentTicketOwner = hchanges.get("oldValue");
+			}
+			if(hchanges.get("field").toString().equalsIgnoreCase("Status"))
+			{
+				currentStatus = hchanges.get("oldValue");
+			}
+		}
+		info currentStatus;
+		info currentTicketOwner;
+		break;
+	}
+}
+//jsonString = {"status":currentStatus,"assigneeId":currentTicketOwner};
+jsonString = {"assigneeId":currentTicketOwner};
+//info jsonString;
+updateTicket = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/tickets/" + ticketID
+	type :POST
+	parameters:jsonString.toString()
+	connection : “deskoperation”
+];
+//info updateTicket;

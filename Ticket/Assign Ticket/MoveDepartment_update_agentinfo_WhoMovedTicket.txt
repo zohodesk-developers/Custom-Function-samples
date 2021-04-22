@@ -1,0 +1,60 @@
+/*
+While moving ticket from one department to another department maintain agent info code
+
+Connection Creation:
+1) Setup->Connection
+2) Create New connection
+3) Choose ZohoOAuth Service
+4) Enter connection name and connection link name
+5) Choose desk related scopes
+6) Create and Connect then replace connection linkname in code instead “deskoperation”
+
+SCOPE : Desk.settings.READ , Desk.basic.READ , Desk.tickets.READ , Desk.tickets.UPDATE
+*/
+Module : Ticket
+
+Argument: 
+Name : ticketID - Value : TicketId
+
+Sample Code:
+
+orgId = "644088596";//Replace ORGID
+getTicketHistory = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/tickets/" + ticketID + "/history"
+	type :GET
+	connection : "deskoperation"
+];
+//info getTicketHistory;
+ticketHistory = getTicketHistory.toList();
+info ticketHistory;
+for each  history in ticketHistory
+{
+	if(history.get("name").toString().equalsIgnoreCase("Department_Moved"))
+	{
+		agentId = history.get("agentId");
+		name1 = history.get("name");
+		break;
+	}
+}
+info name1;
+info agentId;
+getAgentInfowihtID = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/agents/" + agentId + "?include=profile,role,associatedDepartments,associatedChatDepartments"
+	type :GET
+	connection : "deskoperation"
+];
+AgentName = getAgentInfowihtID.get("firstName") + " " + getAgentInfowihtID.get("lastName");
+AgentName = AgentName.trim();
+ProfileName = getAgentInfowihtID.get("profile").get("name").trim();
+jsonString = {"customFields":{"Profile Name":ProfileName,"Agent Name":AgentName}};
+info jsonString;
+updateTicket = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/tickets/" + ticketID
+	type :PATCH
+	parameters:jsonString.toString()
+	connection : "deskoperation"
+];
+info updateTicket;

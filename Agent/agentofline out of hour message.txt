@@ -1,0 +1,67 @@
+/*
+This function send notification to contact when associated ticket agent as offline status in mail channel 
+
+Connection Creation:
+1) Setup->Connection
+2) Create New connection
+3) Choose ZohoOAuth Service
+4) Enter connection name and connection link name
+5) Choose desk related scopes
+6) Create and Connect then replace connection linkname in code instead “deskoperation”
+
+SCOPE : Desk.tickets.READ
+*/
+
+
+Module : Ticket
+
+Argument :
+Name : ticketID - Value : Ticket Id
+Name : email - Value : Email (choose under contact information)
+
+sample code:
+ORGID = "644088596";//replace ORGID
+getTicketInfo = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/tickets/" + ticketID
+	type :GET
+	connection : "deskOperation"
+];
+assigneeID = getTicketInfo.get("assigneeId");
+getAgentsCount = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/agentsTicketsCount?agentIds=" + assigneeID
+	type :GET
+    	connection : "deskOperation"
+];
+info getAgentsCount;
+if(getAgentsCount.get("data").toString().get("isOnline") == "true")
+{
+channel=getAgentsCount.get("data").toString().get("channel").toString();
+info channel;
+channel="Mail,Phone";
+if (channel.contains("Mail")) 
+{
+info "pass";
+}
+else 
+{
+sendmail
+[
+	from: zoho.adminuserid
+	to: email
+	subject: "Agent ofline status message"
+	message: "message body here"
+]
+}
+}
+else 
+{
+sendmail
+[
+	from: zoho.adminuserid
+	to: email
+	subject: "Agent ofline status message"
+	message: "message body here"
+]
+}

@@ -1,0 +1,36 @@
+/*
+Assign Ticket based on days..
+*/
+
+Module: Tickets
+ Execute On: Ticket Owner field update
+ Custom Function: On_Ticket_OwnerUpdate
+    
+Arguments : 
+       ticketID - Ticket Id in Ticket information
+       createdTime - Created Time in Ticket information
+
+ORGID = 644088596;  //This is your ORGID don't change it
+ctdate = createdTime.getDayOfWeek();
+ctimeHour = createdTime.getHour();
+agent1 = "182208000000069005";  //you can replace this agent1 name as Actual Agent Name
+agent2 = "182208000002590023";  //you can get this 16 digit ID by export tickets
+agent3 = "182208000002297027";
+if(ctdate == 1 || ctdate == 7)  // Assign ticket which are created weekends
+{
+	jsonString = {"assigneeId":agent1}; //Assign the AgentID (replace the correct variable name if you replace agent1 as actual AgentName)
+	updateTicketAgent = zoho.desk.update(ORGID,"tickets",ticketID,jsonString);
+else
+{
+	if(ctimeHour >= 8 && ctimeHour < 17)  // Assign tickets which are created weekdays as mentioned business hours  8am to 5pm
+	{
+		jsonString = {"assigneeId":agent2};
+		updateTicketAgent = zoho.desk.update(ORGID,"tickets",ticketID,jsonString);
+	}
+	        //if you want assign specific hours out of business hours then replace else as above if condition ctimeHour >= 17 && ctimeHour < 23 So the rest of hours created ticket as unassigned mode
+	else    //Assign tickets which are created rest of the business hours in weekdays
+	{
+		jsonString = {"assigneeId":agent3};
+		updateTicketAgent = zoho.desk.update(ORGID,"tickets",ticketID,jsonString);
+	}
+}

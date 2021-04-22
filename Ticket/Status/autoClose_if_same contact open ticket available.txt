@@ -1,0 +1,68 @@
+/*
+To Close ticket if already open ticket available for contact
+
+Connection Creation:
+1) Setup->Connection
+2) Create New connection
+3) Choose ZohoOAuth Service
+4) Enter connection name and connection link name
+5) Choose desk related scopes
+6) Create and Connect then replace connection linkname in code instead “deskoperation”
+
+SCOPE :Desk.contacts.UPDATE , Desk.tickets.UPDATE, Desk.search.READ, Desk.tickets.READ , Desk.contacts.READ
+*/
+
+Module : Ticket
+Argument:
+Name : ticketID - Value : Ticket Id
+
+Sample Code:
+orgId = "644088596";
+getTicket = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/tickets/" + ticketID
+	type :GET
+	connection : “deskoperation”
+];
+departmentID = getTicket.get("departmentId");
+//info departmentID;
+contactID = getTicket.get("contactId");
+//info contactID;
+updateContact = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/contacts/" + contactID + "/tickets?from=0&limit=99&sortBy=-createdTime&departmentId=" + departmentID
+	type :GET
+	connection : “deskoperation”
+];
+info updateContact;
+ListTickets = updateContact.get("data");
+temp=false;
+i=0;
+for each  ticket in ListTickets
+{
+    if(i=0){
+    i=i+1;
+	}
+    else{
+	if(ticket.get("status") == "Open")
+	{
+        //oldTicketID=ticket.get("ticketNumber");
+		temp=true;
+		break;
+	}
+    i=i+1;
+	}
+}
+if(temp == true)
+{
+	jsonString = {"status":"Closed"};
+	updateTicket = invokeurl
+	[
+		url :"https://desk.zoho.com/api/v1/tickets/" + ticketID
+		type :PATCH
+		parameters:jsonString.toString()
+		connection : “deskoperation”
+	];
+	info updateTicket;
+}
+

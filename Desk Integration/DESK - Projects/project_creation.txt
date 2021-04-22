@@ -1,0 +1,28 @@
+/*
+This Function create project from desk sample code.
+
+MODULE : Ticket
+
+ARGUMENT :
+Name : ticketID - Value : Ticket Id
+
+SAMPLE CODE:
+*/
+
+orgId = 644088596;//replace DESK ORGID
+//portal_id = "650161438";
+getTicketDetails = zoho.desk.getRecordById(orgId,"tickets",ticketID);
+info getTicketDetails;
+name = getTicketDetails.get("subject");
+description = "TEst projects";
+start_date = "10-17-2018";//date must be this format MM:DD:YYYY
+end_date = "10-17-2019";
+strict_project = "1";
+projectDetails = Map();
+projectDetails.put("name",name);
+projectDetails.put("description",description);
+projectDetails.put("start_date",start_date);
+projectDetails.put("end_date",end_date);
+projectDetails.put("strict_project",strict_project);
+getportal = zoho.projects.createProject("portalname",projectDetails);//replace project portal name (portalname)
+info getportal;

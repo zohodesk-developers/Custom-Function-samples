@@ -1,0 +1,101 @@
+
+/*
+create one dummy contact and create two Custom Field under Contact Module Named "AllStoredAgent" (to specify the Agent email address sperated by comma without any spaces), "Agentemail".
+
+This will not consider agent offline/online and ticket threshold count
+
+Once done that above thing then create custom function and associate with workflow Rule
+
+
+Connection Creation:
+1) Setup->Connection
+2) Create New connection
+3) Choose ZohoOAuth Service
+4) Enter connection name and connection link name
+5) Choose desk related scopes
+6) Create and Connect then replace connection linkname in code instead “deskoperation”
+
+SCOPE : Desk.settings.READ , Desk.basic.READ , Desk.tickets.UPDATE , Desk.contacts.READ , Desk.contacts.UPDATE
+*/
+
+
+Module : Ticket
+
+Argument : ticketID - Under Ticket Information
+            createdTime - Under Ticket Information
+			
+Sample Code :			
+
+dummyContactId = "182208000005491231";//create DummyContact and provide ContactId Here
+ORGID = "644088596";//replace your OrgId
+tcHour = createdTime.getHour();
+tcMinute = createdTime.getMinutes();
+tcSeconds = createdTime.getSeconds();
+
+if(tcHour >= 9 && tcHour < 18)
+{
+	dummyContactResponse = invokeurl
+	[
+		url :"https://desk.zoho.com/api/v1/contacts/" + dummyContactId
+		type :GET
+		connection : “deskoperation”
+	];
+	if(dummyContactResponse.get("id") == null)
+	{
+		info "CONTACT DOESN'T EXIST";
+		sendmail
+		[
+			from :zoho.adminuserid
+			to :zoho.adminuserid
+			subject :"Round_Robin_Assign_Owner"
+			message :"There is no data to show for the dummy ContactId = " + dummyContactId
+		]
+	}
+	else
+	{
+		info "CONTACT EXIST";
+		agentList = dummyContactResponse.get("customFields").get("AllStoredAgent").toList();
+		currentAgent = dummyContactResponse.get("customFields").get("Agentemail");
+		getAllAgents = invokeurl
+		[
+			url :"https://desk.zoho.com/api/v1/agents?searchStr="+currentAgent
+			type :GET
+			connection : “deskoperation”
+		];
+		if(currentAgent != null && agentList.indexOf(currentAgent) != -1)
+		{
+			agentIndex = agentList.indexOf(currentAgent);
+			nextAgentIndex = (agentIndex + 1) % agentList.size();
+		}
+		else
+		{
+			currentAgent = agentList.get(0);
+			nextAgentIndex = 1 % agentList.size();
+		}
+		assigneeID = getAllAgents.get("id");
+		if(assigneeID != null && assigneeID != "" && assigneeID != "null")
+		{
+			// Assign agent 
+			jsonString = {"assigneeId":assigneeID};
+			updateTicketOwner = invokeurl
+			[
+				url :"https://desk.zoho.com/api/v1/tickets/" + ticketID
+				type :PATCH
+				parameters:jsonString.toString()
+				connection : “deskoperation”
+			];
+			if(updateTicketOwner.get("id") != null)
+			{
+				// Update next agent in the dummy contact
+				nextAgent = {"customFields":{"Agentemail":agentList.get(nextAgentIndex)}};
+				updateNextAgent = invokeurl
+				[
+					url :"https://desk.zoho.com/api/v1/contacts/" + dummyContactId
+					type :PATCH
+					parameters:nextAgent.toString()
+					connection : “deskoperation”
+				];
+			}
+		}
+	}
+}

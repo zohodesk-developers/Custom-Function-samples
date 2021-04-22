@@ -1,0 +1,43 @@
+/*
+Sample share ticket to another department
+
+Connection Creation:
+1) Setup->Connection
+2) Create New connection
+3) Choose ZohoOAuth Service
+4) Enter connection name and connection link name
+5) Choose desk related scopes
+6) Create and Connect then replace connection linkname in code instead “deskoperation”
+
+SCOPE :Desk.tickets.UPDATE
+*/
+Module : Ticket
+Argument : 
+Name : ticketID - Value : Ticket Id
+
+Sample Code:
+/*AccessType : 
+RESTRICTED_ACCESS
+READ_WRITE
+READ_ONLY
+*/
+SampleCode:
+
+orgId = 644088596;
+param=map();
+param.put("id", "182208000005452360");// replace Department ID here
+param.put("type", "READ_WRITE");// setup access type here
+/*_____If Required to share more than one department then add the copy the above map for each department and name should be unique.. 
+add it in below inputList, examples are provided here____*/
+// param1=map();
+// param1.put("id", "182208000005452360");// replace Department ID here
+// param1.put("type", "RESTRICTED_ACCESS");// setup access type here
+inputList=list();
+inputList.add(param);
+//inputList.add(param1);
+if(!inputList.isEmpty())
+{
+	jsonString = {"sharedDepartments":inputList};
+    info jsonString;
+	ShareTicket=zoho.desk.update(orgId,"tickets",ticketID,jsonString+"","deskoperation");
+}

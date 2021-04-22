@@ -1,0 +1,62 @@
+/*
+To create  calls whenever receive customer happiness negative rating..wecan use this function
+for whereever need to create call Activity 
+
+Connection Creation:
+1) Setup->Connection
+2) Create New connection
+3) Choose ZohoOAuth Service
+4) Enter connection name and connection link name
+5) Choose desk related scopes
+6) Create and Connect then replace connection linkname in code instead “deskoperation”
+
+SCOPE :  Desk.activities.calls.CREATE , Desk.activities.CREATE
+*/
+
+Module : Ticket
+
+Argument: 
+Name : ticketID - Value : TicketId
+
+Sample Code:
+
+ORGID = 644088596;
+getTicketInfo = zoho.desk.getRecordById(ORGID,"tickets",ticketID);
+assigneeId = getTicketInfo.get("assigneeId");
+currentDeptID = getTicketInfo.get("departmentId");
+Subject = "Red Happiness Rating";
+Direction = "outbound";
+CallStatus = "Scheduled";
+createdTime = zoho.currenttime.toString("yyyy-MM-dd HH:mm:ss","GMT").toTime().addHour(1).toString("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+info createdTime;
+callReminderTime = zoho.currenttime.toString("yyyy-MM-dd HH:mm:ss","GMT").toTime().addMinutes(45).toString("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+info createdTime;
+StartTime = createdTime;
+ContactName = contactName.trim();
+CallOwner = assigneeId;
+Description = "This has been escalated to the management team via workflow in Zoho Desk. We have received a Red customer happiness rating for a Desk ticket. Please ensure a member of the management team calls the client to find out more details and see if further assistance is required.";
+taskdetails = Map();
+taskdetails.put("subject","Red Happiness Rating");
+taskdetails.put("departmentId",currentDeptID);
+taskdetails.put("priority","High");
+taskdetails.put("startTime",createdTime);
+taskdetails.put("direction","outbound");
+taskdetails.put("contactId",contactID);
+taskdetails.put("status","Scheduled");
+taskdetails.put("ownerId",assigneeId);
+taskdetails.put("duration","60");
+taskdetails.put("description",Description);
+taskdetails.put("ticketId",ticketID);
+remainderMap = Map();
+remainderMap.put("alertType",{"EMAIL","POPUP"});
+remainderMap.put("reminderType","ABSOLUTE");
+remainderMap.put("reminderTime",callReminderTime);
+taskdetails.put("reminder",{remainderMap});
+createCall = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/calls"
+	type :POST
+	parameters:taskdetails + ""
+	connection:"deskoperation"
+];
+//info createCall;

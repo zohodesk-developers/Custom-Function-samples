@@ -1,0 +1,90 @@
+/*
+This function to update task status to Crm task status while update task status in Desk end
+
+Connection Creation:
+1) Setup->Connection
+2) Create New connection
+3) Choose ZohoOAuth Service
+4) Enter connection name and connection link name
+5) Choose desk related scopes
+6) Create and Connect then replace connection linkname in code instead “deskoperation”
+
+
+SCOPE  - deskoperation : Desk.activities.READ , Desk.activities.tasks.READ  , Desk.settings.READ , Desk.basic.READ ,Desk.contacts.READ , Desk.activities.UPDATE 
+, Desk.activities.tasks.UPDATE
+
+SCOPE  - crmoperation :  ZohoCRM.users.ALL , ZohoCRM.modules.ALL
+
+WorkFlow:
+
+Module Tasks
+Event : OnEdit
+criteria : none
+Action : Choose custom Function - > New
+*/
+
+
+For Custom Function:
+
+Module :  Tasks
+
+Argument:
+Name : taskID - Value : TaskId
+Name : status - Value : Status
+Name : crmTaskID - Value : crmTaskID //Must create Custom field inside Task Module with Name "crmTaskID"
+
+Sample Code:
+taskID = taskID.toString();
+ORGID = "644088596";
+//Your ORGID
+crmID = crmTaskID.toLong();
+getContactDetails = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/tasks/" + taskID + "?include=tickets"
+	type :GET
+	connection:"deskoperation"
+];
+info getContactDetails;
+subj = getContactDetails.get("subject");
+dueDate = getContactDetails.get("dueDate");
+ticketNumber = getContactDetails.get("ticket").get("ticketNumber");
+ticketID = getContactDetails.get("ticketId");
+ownerID = getContactDetails.get("ownerId");
+contactid = getContactDetails.get("ticket").get("contact").get("id");
+priority = getContactDetails.get("priority");
+description = getContactDetails.get("description");
+category = getContactDetails.get("category");
+status = getContactDetails.get("status");
+dueDate = dueDate.toDate().toString("yyyy-MM-dd");
+//gettaskdetails=zoho.crm.getRecordById("Tasks", 2518419000001017011);
+//info gettaskdetails;
+getDeskAgents = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/agents"+ownerID
+	type :GET
+	connection:"deskoperation"
+];
+// get corresponding Desk agent ID
+AgentEmail = getDeskAgents.get("emailId");
+getCRMUsers = invokeurl
+[
+	url :"https://www.zohoapis.com/crm/v2/users"
+	type :GET
+	parameters:{"type":"AllUsers"}
+    connection:"crmConection"
+];
+//get CRM account owner emailID
+crmOwnerId = getCRMUsers.get("/users/user[@email=\"" + AgentEmail + "\"]/@id").get("/id/text()");
+//info crmOwnerEmail;
+leadMap = Map();
+leadMap.put("Subject",subj.trim());
+leadMap.put("Due_Date",dueDate);
+leadMap.put("Status",status);
+leadMap.put("Priority",priority);
+leadMap.put("Category",category);
+leadMap.put("Owner_ID",crmOwnerId);
+//mondatory
+leadMap.put("Description",description);
+createLead = zoho.crm.update("Tasks",crmID,leadMap);
+//createLead = zoho.crm.create("Tasks",leadMap);
+info createLead;

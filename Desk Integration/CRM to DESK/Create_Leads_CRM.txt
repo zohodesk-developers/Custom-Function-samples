@@ -1,0 +1,25 @@
+/*
+This function create lead Whenever Contact created in desk
+*/
+
+Module : Contacts
+Execute on : Create
+Actions : Associate the below custom function
+
+Arguments :
+contactID - Contact Id from Contact Information
+
+ORGID = 644088596;
+getContactDetails=zoho.desk.getRecordById(ORGID,"contacts",contactID);
+leadMap = Map();
+leadMap.put("Last Name",ifnull(getContactDetails.get("lastName"),""));
+leadMap.put("First Name",ifnull(getContactDetails.get("firstName"),""));
+leadMap.put("Email",ifnull(getContactDetails.get("email"),""));
+leadMap.put("Phone",ifnull(getContactDetails.get("phone"),""));
+leadMap.put("Mobile",ifnull(getContactDetails.get("mobile"),""));
+leadMap.put("Secondary Email",ifnull(getContactDetails.get("secondaryEmail"),""));
+createLead = zoho.crm.create("Leads",leadMap);
+info createLead;
+
+
+//Note : Replace zohoSupportAuthtoken and ORGID.

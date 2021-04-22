@@ -1,0 +1,106 @@
+/*
+
+After ticekt moved to another department the copy of ticket created in original departmment
+
+Connection Creation:
+1) Setup->Connection
+2) Create New connection
+3) Choose ZohoOAuth Service
+4) Enter connection name and connection link name
+5) Choose desk related scopes
+6) Create and Connect then replace connection linkname in code instead “deskoperation”
+
+SCOPE : Desk.tickets.CREATE , Desk.tickets.READ , Desk.tickets.UPDATE 
+*/
+
+Module : Ticket
+
+Argument: 
+Name  :  ticketID - Value : Ticekt Id
+
+Sample Code
+orgId = 644088596;
+moved = false;
+oldAgentID = "";
+oldDepartmentID = "";
+oldStatus = null;
+getTicketHistory = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/tickets/" + ticketID + "/History?limit=50"
+	type :GET
+	connection:"deskoperation"
+];
+//info getTicketHistory;
+listofHistory = getTicketHistory.get("data");
+for each  history in listofHistory
+{
+	//info history;
+	if(history.get("eventName") == "TicketUpdated")
+	{
+		listEvent = history.get("eventInfo");
+		//info listEvent;
+		for each  event in listEvent
+		{
+			if(event.get("propertyName") == "Department")
+			{
+				info "pass_" + event.get("propertyName");
+				moved = true;
+				if(event.get("propertyValue") != null)
+				{
+					oldDepartmentID = event.get("propertyValue").get("previousValue").get("id");
+					info oldDepartmentID + "\n";
+				}
+			}
+			if(event.get("propertyName") == "Case Owner")
+			{
+				if(event.get("propertyValue") != null)
+				{
+					oldAgentID = event.get("propertyValue").get("previousValue").get("id");
+					info oldAgentID + "\n";
+				}
+			}
+			if(event.get("propertyName") == "Status")
+			{
+				if(event.get("propertyValue") != null)
+				{
+					oldStatus = event.get("propertyValue").get("previousValue");
+					info oldStatus + "\n";
+				}
+			}
+		}
+		if(moved == true)
+		{
+			break;
+		}
+	}
+	if(moved == true)
+	{
+		break;
+	}
+}
+if(moved == true)
+{
+	getTicketInfo = zoho.desk.getRecordById(orgId,"tickets",ticketID);
+	param = Map();
+	param.put("subject",getTicketInfo.get("subject"));
+	param.put("contactId",getTicketInfo.get("contactId"));
+	param.put("departmentId",oldDepartmentID);
+	param.put("email",getTicketInfo.get("email"));
+	param.put("phone",getTicketInfo.get("phone"));
+	param.put("status",ifNull(oldStatus,getTicketInfo.get("status")));
+	param.put("assigneeId",oldAgentID);
+	param.put("category",getTicketInfo.get("category"));
+	param.put("subCategory",getTicketInfo.get("subCategory"));
+	param.put("dueDate",getTicketInfo.get("dueDate"));
+	param.put("priority",getTicketInfo.get("priority"));
+	param.put("classification",getTicketInfo.get("classification"));
+	customParam = Map();
+	customParam.put("cf_customField1","value1");
+	customParam.put("cf_customField2","value2");
+	customParam.put("cf_customField3","value3");
+	customParam.put("cf_customField4","value4");
+	customParam.put("cf_customField5","value5");
+	param.put("cf",customParam);
+	createTicket = zoho.desk.create(orgId,"tickets",param);
+	info createTicket;
+}

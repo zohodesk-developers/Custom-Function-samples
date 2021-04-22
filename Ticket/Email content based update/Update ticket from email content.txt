@@ -1,0 +1,195 @@
+/*
+To update ticket fields based on body of email content and update account details
+
+Connection Creation:
+1) Setup->Connection
+2) Create New connection
+3) Choose ZohoOAuth Service
+4) Enter connection name and connection link name
+5) Choose desk related scopes
+6) Create and Connect then replace connection linkname in code instead “deskoperation”
+
+SCOPE :Desk.search.READ , Desk.contacts.READ , Desk.contacts.UPDATE , Desk.tickets.UPDATE, Desk.contacts.CREATE
+*/
+
+Module: Ticket
+
+Argument:
+ticketID  - Ticket Id
+contactID - Contact Id
+accountID - Account Id
+accountOwner - Accounts Owner
+email - Email (select under Contact Information)
+
+
+Sample Code:
+
+ORGID = "644088596";
+Anandkodi = "66440000000047090";
+commonDomain = "gmail,outlook,zoho,yahoo";
+getTicket = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/tickets/" + ticketID + "/threads"
+	type :GET
+	connection : “deskoperation”
+];
+//info getTicket;
+count = getTicket.get("data").size();
+info count;
+latestThreadID = getTicket.get("data").get(count - 1).get("id");
+info latestThreadID;
+getTicketThread = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/tickets/" + ticketID + "/threads/" + latestThreadID
+	type :GET
+	connection : “deskoperation”
+];
+info getTicketThread;
+ThreadContent = getTicketThread.get("content");
+EscalationType = ThreadContent.toCollection("<");
+finalvalue = "";
+for each  myvalue in EscalationType
+{
+	mmvalue = myvalue.toString();
+	len = mmvalue.length();
+	leng = mmvalue.indexOf(">");
+	temp = mmvalue.subText(mmvalue.indexOf(">") + 1);
+	finalvalue = finalvalue + temp + "  ";
+}
+country = finalvalue.subText(finalvalue.indexOf("Address Country") + 15,finalvalue.indexOf("Edition Registered") - 1);
+info country;
+country = country.trim();
+if(country.equalsIgnoreCase("Albania") || country.equalsIgnoreCase("Andorra") || country.equalsIgnoreCase("Belarus") || country.equalsIgnoreCase("Bosnia") || country.equalsIgnoreCase("Croatia") || country.equalsIgnoreCase("Faroe Islands") || country.equalsIgnoreCase("Gibraltar") || country.equalsIgnoreCase("Iceland") || country.equalsIgnoreCase("Jersey") || country.equalsIgnoreCase("Kosovo") || country.equalsIgnoreCase("Liechtenstein") || country.equalsIgnoreCase("Macedonia") || country.equalsIgnoreCase("Moldova") || country.equalsIgnoreCase("Monaco") || country.equalsIgnoreCase("Montenegro") || country.equalsIgnoreCase("Norway") || country.equalsIgnoreCase("San Marino") || country.equalsIgnoreCase("Serbia") || country.equalsIgnoreCase("Svalbard and Jan Mayen Islands") || country.equalsIgnoreCase("Switzerland") || country.equalsIgnoreCase("Turkey") || country.equalsIgnoreCase("Ukraine") || country.equalsIgnoreCase("Vatican City State") || country.equalsIgnoreCase("Austria") || country.equalsIgnoreCase("Belgium") || country.equalsIgnoreCase("Bulgaria") || country.equalsIgnoreCase("Cyprus") || country.equalsIgnoreCase("Czech Republic") || country.equalsIgnoreCase("Czech republic") || country.equalsIgnoreCase("Denmark") || country.equalsIgnoreCase("Estonia") || country.equalsIgnoreCase("Finland") || country.equalsIgnoreCase("France") || country.equalsIgnoreCase("Germany") || country.equalsIgnoreCase("Greece") || country.equalsIgnoreCase("Hungary") || country.equalsIgnoreCase("Ireland") || country.equalsIgnoreCase("Italy") || country.equalsIgnoreCase("Latvia") || country.equalsIgnoreCase("Lithuania") || country.equalsIgnoreCase("Luxembourg") || country.equalsIgnoreCase("Malta") || country.equalsIgnoreCase("Netherlands") || country.equalsIgnoreCase("Poland") || country.equalsIgnoreCase("Portugal") || country.equalsIgnoreCase("Romania") || country.equalsIgnoreCase("Slovakia") || country.equalsIgnoreCase("Slovenia") || country.equalsIgnoreCase("Spain") || country.equalsIgnoreCase("Sweden") || country.equalsIgnoreCase("United kingdom") || country.equalsIgnoreCase("United Kingdom"))
+{
+	zone = "Europe";
+	ProductPreSalesOwner = "Gunasekaran U";
+}
+if(country.equalsIgnoreCase("Burundi") || country.equalsIgnoreCase("Comoros") || country.equalsIgnoreCase("Djibouti") || country.equalsIgnoreCase("Eritrea") || country.equalsIgnoreCase("Ethiopia") || country.equalsIgnoreCase("Kenya") || country.equalsIgnoreCase("Madagascar") || country.equalsIgnoreCase("Malawi") || country.equalsIgnoreCase("Mauritius") || country.equalsIgnoreCase("Mozambique") || country.equalsIgnoreCase("Reunion") || country.equalsIgnoreCase("Rwanda") || country.equalsIgnoreCase("Seychelles") || country.equalsIgnoreCase("Somalia") || country.equalsIgnoreCase("Tanzania") || country.equalsIgnoreCase("Uganda") || country.equalsIgnoreCase("Zambia") || country.equalsIgnoreCase("Zimbabwe") || country.equalsIgnoreCase("Angola") || country.equalsIgnoreCase("Cameroon") || country.equalsIgnoreCase("Chad") || country.equalsIgnoreCase("Congo") || country.equalsIgnoreCase("Equatorial Guinea") || country.equalsIgnoreCase("Gabon") || country.equalsIgnoreCase("Algeria") || country.equalsIgnoreCase("Egypt") || country.equalsIgnoreCase("Libyan Arab Jamahiriya") || country.equalsIgnoreCase("Morroco") || country.equalsIgnoreCase("South Sudan") || country.equalsIgnoreCase("Sudan") || country.equalsIgnoreCase("Tunisia") || country.equalsIgnoreCase("Botswana") || country.equalsIgnoreCase("Lesotho") || country.equalsIgnoreCase("Namibia") || country.equalsIgnoreCase("South Africa") || country.equalsIgnoreCase("Swaziland") || country.equalsIgnoreCase("Benin") || country.equalsIgnoreCase("Burkina Faso") || country.equalsIgnoreCase("Gambia") || country.equalsIgnoreCase("Ghana") || country.equalsIgnoreCase("Guinea") || country.equalsIgnoreCase("Liberia") || country.equalsIgnoreCase("Mali") || country.equalsIgnoreCase("Mauritania") || country.equalsIgnoreCase("Niger") || country.equalsIgnoreCase("Nigeria") || country.equalsIgnoreCase("Saint Helena") || country.equalsIgnoreCase("Senegal") || country.equalsIgnoreCase("Sierra Leone") || country.equalsIgnoreCase("Togo"))
+{
+	zone = "Africa";
+	ProductPreSalesOwner = "Gunasekaran U";
+}
+if(country.equalsIgnoreCase("Afganistan") || country.equalsIgnoreCase("Armenia") || country.equalsIgnoreCase("Azerbaijan") || country.equalsIgnoreCase("Bangladesh") || country.equalsIgnoreCase("Bhutan") || country.equalsIgnoreCase("Brunei Darussalam") || country.equalsIgnoreCase("Cambodia") || country.equalsIgnoreCase("China") || country.equalsIgnoreCase("Georgia") || country.equalsIgnoreCase("Russia") || country.equalsIgnoreCase("India") || country.equalsIgnoreCase("Indonesia") || country.equalsIgnoreCase("Japan") || country.equalsIgnoreCase("Kazakhstan") || country.equalsIgnoreCase("North Korea") || country.equalsIgnoreCase("South Korea") || country.equalsIgnoreCase("Kyrgyzstan") || country.equalsIgnoreCase("Laos") || country.equalsIgnoreCase("Macao") || country.equalsIgnoreCase("Malaysia") || country.equalsIgnoreCase("Maldives") || country.equalsIgnoreCase("Mongolia") || country.equalsIgnoreCase("Myanmar") || country.equalsIgnoreCase("Nepal") || country.equalsIgnoreCase("Pakistan") || country.equalsIgnoreCase("Philippines") || country.equalsIgnoreCase("Singapore") || country.equalsIgnoreCase("Sri Lanka") || country.equalsIgnoreCase("Taiwan") || country.equalsIgnoreCase("Tajikistan") || country.equalsIgnoreCase("Thailand") || country.equalsIgnoreCase("Timor Leste") || country.equalsIgnoreCase("Turkmenistan") || country.equalsIgnoreCase("Uzbekistan") || country.equalsIgnoreCase("Viet Nam") || country.equalsIgnoreCase("Guam") || country.equalsIgnoreCase("Kiribati") || country.equalsIgnoreCase("Marshall Islands") || country.equalsIgnoreCase("Micronesia") || country.equalsIgnoreCase("Russian federation") || country.equalsIgnoreCase("Russian Federation"))
+{
+	zone = "APAC";
+	ProductPreSalesOwner = "Dinesh G";
+}
+if(country.equalsIgnoreCase("Solomon Islands") || country.equalsIgnoreCase("Papua New Guinea") || country.equalsIgnoreCase("Samoa American") || country.equalsIgnoreCase("New Zealand") || country.equalsIgnoreCase("Fiji") || country.equalsIgnoreCase("Australia") || country.equalsIgnoreCase("New Caledonia") || country.equalsIgnoreCase("French Polynesia") || country.equalsIgnoreCase("Tonga") || country.equalsIgnoreCase("Samoa"))
+{
+	zone = "ANZ";
+	ProductPreSalesOwner = "Dinesh G";
+}
+if(country.equalsIgnoreCase("Bahrain") || country.equalsIgnoreCase("Iraq") || country.equalsIgnoreCase("Iran") || country.equalsIgnoreCase("Israel") || country.equalsIgnoreCase("Jordan") || country.equalsIgnoreCase("Kuwait") || country.equalsIgnoreCase("Lebanon") || country.equalsIgnoreCase("Oman") || country.equalsIgnoreCase("Palestine") || country.equalsIgnoreCase("Qatar") || country.equalsIgnoreCase("Saudi Arabia") || country.equalsIgnoreCase("Saudi arabia") || country.equalsIgnoreCase("Syria") || country.equalsIgnoreCase("United arab emirates") || country.equalsIgnoreCase("United Arab Emirates") || country.equalsIgnoreCase("Yemen") || country.equalsIgnoreCase("UAE"))
+{
+	zone = "Middle East";
+	ProductPreSalesOwner = "Gunasekaran U";
+}
+if(country.equalsIgnoreCase("Anguilla") || country.equalsIgnoreCase("Antigua and Barbuda") || country.equalsIgnoreCase("Aruba") || country.equalsIgnoreCase("Bahamas") || country.equalsIgnoreCase("Barbados") || country.equalsIgnoreCase("Bonaire Saint Eustatius and Saba") || country.equalsIgnoreCase("British Virgin Islands") || country.equalsIgnoreCase("Cayman Islands") || country.equalsIgnoreCase("Cuba") || country.equalsIgnoreCase("Curaçao") || country.equalsIgnoreCase("Dominica") || country.equalsIgnoreCase("Dominican Republic") || country.equalsIgnoreCase("Grenada") || country.equalsIgnoreCase("Guadeloupe") || country.equalsIgnoreCase("Haiti") || country.equalsIgnoreCase("Jamaica") || country.equalsIgnoreCase("Martinique") || country.equalsIgnoreCase("Monserrat") || country.equalsIgnoreCase("Puerto Rico") || country.equalsIgnoreCase("Puerto rico") || country.equalsIgnoreCase("Saint Barthélemy") || country.equalsIgnoreCase("St. Kitts and Nevis") || country.equalsIgnoreCase("Saint Lucia") || country.equalsIgnoreCase("Saint Martin") || country.equalsIgnoreCase("Saint Vincent and the Grenadines") || country.equalsIgnoreCase("Sint Maarten") || country.equalsIgnoreCase("Trinidad and Tobago") || country.equalsIgnoreCase("Turks and Caicos Islands") || country.equalsIgnoreCase("Virgin Islands (US)") || country.equalsIgnoreCase("Belize") || country.equalsIgnoreCase("Costa Rica") || country.equalsIgnoreCase("El Salvador") || country.equalsIgnoreCase("El salvador") || country.equalsIgnoreCase("Guatemala") || country.equalsIgnoreCase("Honduras") || country.equalsIgnoreCase("Mexico") || country.equalsIgnoreCase("Nicaragua") || country.equalsIgnoreCase("Panama") || country.equalsIgnoreCase("Bermuda") || country.equalsIgnoreCase("Canada") || country.equalsIgnoreCase("Greenland") || country.equalsIgnoreCase("Saint Pierre and Miquelon") || country.equalsIgnoreCase("United States") || country.equalsIgnoreCase("USA"))
+{
+	zone = "North America";
+	ProductPreSalesOwner = "Anand Kodi";
+}
+if(country.equalsIgnoreCase("Argentina") || country.equalsIgnoreCase("Bolivia") || country.equalsIgnoreCase("Brazil") || country.equalsIgnoreCase("Chile") || country.equalsIgnoreCase("Colombia") || country.equalsIgnoreCase("Ecuador") || country.equalsIgnoreCase("Falkland Islands") || country.equalsIgnoreCase("French Guiana") || country.equalsIgnoreCase("Guyana") || country.equalsIgnoreCase("Paraguay") || country.equalsIgnoreCase("Peru") || country.equalsIgnoreCase("Suriname") || country.equalsIgnoreCase("Uruguay") || country.equalsIgnoreCase("Venezuela"))
+{
+	zone = "South America";
+	ProductPreSalesOwner = "Anand Kodi";
+}
+currentTime = zoho.currenttime.toString("yyyy-MM-dd'T'HH:mm:ss'.000Z'","GMT");
+jsonString = Map();
+jsonString.put("assigneeId",Anandkodi);
+customData = Map();
+customData.put("Edition","ZROP");
+customData.put("Account Type","Prospect");
+customData.put("Account Status","Cold");
+customData.put("Country",country);
+customData.put("Zone",zone);
+customData.put("Presales Owner",ProductPreSalesOwner);
+customData.put("Lead Source","Web Download");
+customData.put("Lead Creation Date",currentTime);
+customData.put("Download Date",currentTime);
+jsonString.put("customFields",customData);
+if(accountID != null)
+{
+	if(accountOwner != "Anand Kodi" && accountOwner != "Dinesh	Kumar" && accountOwner != "Clinton Wilfred" && accountOwner != "Gunasekaran U" && accountOwner != "TamilArasan")
+	{
+		//jsonString = {"assigneeId":Anandkodi};
+		updateTicket = invokeurl
+		[
+			url :"https://desk.zoho.com/api/v1/accounts/" + accountID
+			type :PATCH
+			parameters:jsonString.toString()
+			connection : “deskoperation”
+		];
+	}
+}
+else
+{
+	domain = email.subText(email.indexOf("@") + 1,email.toString().length());
+	searchAccountByDomain = invokeurl
+	[
+		url :"https://desk.zoho.com/api/v1/accounts/search?limit=99&_all=" + domain
+		type :GET
+		connection : “deskoperation”
+	];
+	//info searchAccountByDomain;
+	listofAccounts = searchAccountByDomain.get("data");
+	if(searchAccountByDomain.get("data") == "" || searchAccountByDomain.get("data") == null)
+	{
+        domain = email.subText(email.indexOf("@") + 1,email.indexOf("."));
+		if(commonDomain.containsIgnoreCase(domain.trim()))
+		{
+			accountname = "ZROP -onpremise Public account";
+			accountownID = "66440000000047090";
+		}
+		else
+		{
+			accountname = domain.trim();
+			accountownID = "66440000000047090";
+		}
+		param = Map();
+		param.put("accountName",accountname);
+		param.put("ownerId",accountownID);
+		param.put("customFields",customData);
+		createaccount = invokeurl
+		[
+			url :"https://desk.zoho.com/api/v1/accounts"
+			type :POST
+			parameters:param.toString()
+			connection : “deskoperation”
+		];
+		info createaccount;
+		newAccountID = createaccount.get("id");
+	}
+	else
+	{
+		for each  account in listofAccounts
+		{
+			domainname = account.get("customFields").get("Domain Name").toString();
+			accountowner = account.get("ownerId");
+			if(accountowner.equals("66440000000047090"))
+			{
+				if(domain.equalsIgnoreCase(domainname))
+				{
+					newAccountID = account.get("id");
+					updateTicket = invokeurl
+					[
+						url :"https://desk.zoho.com/api/v1/accounts/" + newAccountID
+						type :PATCH
+						parameters:jsonString.toString()
+						connection : “deskoperation”
+					];
+                 break;
+				}
+			}
+		}
+	}
+	jsonString1 = {"accountId":newAccountID};
+	updatecontact = invokeurl
+	[
+		url :"https://desk.zoho.com/api/v1/contacts/" + contactID
+		type :PUT
+		parameters:jsonString1.toString()
+		connection : “deskoperation”
+	];
+	info updatecontact;
+}

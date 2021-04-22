@@ -1,0 +1,87 @@
+/*
+This function fetch info  from  one ticket to  create clone copy as another ticket
+
+Connection Creation:
+1) Setup->Connection
+2) Create New connection
+3) Choose ZohoOAuth Service
+4) Enter connection name and connection link name
+5) Choose desk related scopes
+6) Create and Connect then replace connection linkname in code instead “deskoperation”
+
+SCOPE : Desk.tickets.CREATE , Desk.tickets.READ , Desk.tickets.UPDATE
+*/
+
+Module : Ticket
+
+Argument:
+Name : ticketID - Value : Ticket Id
+
+Sample Code:
+ORGID = "644088596";
+//replace orgid
+getTicketDetails = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/tickets/" + ticketID
+	type :GET
+	connection : "deskoperation"
+];
+//info getTicketDetails;
+ticketNumber = getTicketDetails.get("ticketNumber");
+subCategory = getTicketDetails.get("subCategory");
+subject = getTicketDetails.get("subject");
+subject=subject+" [DOT]";
+departmentId = getTicketDetails.get("departmentId");
+channel = getTicketDetails.get("channel");
+description = getTicketDetails.get("description");
+resolution = getTicketDetails.get("resolution");
+email = getTicketDetails.get("email");
+productId = getTicketDetails.get("productId");
+contactId = getTicketDetails.get("contactId");
+priority = getTicketDetails.get("priority");
+classification = getTicketDetails.get("classification");
+assigneeId = getTicketDetails.get("assigneeId");
+accountId = getTicketDetails.get("accountId");
+phone = getTicketDetails.get("phone");
+webUrl = getTicketDetails.get("webUrl");
+teamId = getTicketDetails.get("teamId");
+category = getTicketDetails.get("category");
+status = getTicketDetails.get("status");
+usertype = getTicketDetails.get("customFields").get("User Type");
+usercount= getTicketDetails.get("customFields").get("No of User");
+edition = getTicketDetails.get("customFields").get("Edition");
+param = Map();
+param.put("ticketNumber",ticketNumber);
+param.put("subCategory ",subCategory);
+param.put("departmentId",departmentId);
+param.put("channel ",channel);
+param.put("description",description);
+param.put("resolution ",resolution);
+param.put("email",email);
+param.put("productId ",productId);
+param.put("ticketId ",ticketID);
+param.put("contactId",contactId);
+param.put("priority ",priority);
+param.put("classification",classification);
+param.put("assigneeId ",assigneeId);
+param.put("accountId",accountId);
+param.put("phone ",phone);
+param.put("webUrl",webUrl);
+param.put("teamId ",teamId);
+param.put("category",category);
+param.put("status ",status);
+info param;
+customparam=Map();
+customparam.put("User Type",usertype);
+customparam.put("No of User",usercount);
+customparam.put("Edition",edition);
+param.put("customFields ",customparam);
+
+createTicket = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/tickets"
+	type :POST
+	parameters:param.toString()
+	connection : "deskoperation"
+];
+info createTicket;

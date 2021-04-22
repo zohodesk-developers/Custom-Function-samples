@@ -1,0 +1,80 @@
+/*
+
+Whenever customer reply received we can clip notify agent/channel.
+
+Connection Creation:
+1) Setup->Connection
+2) Create New connection
+3) Choose ZohoOAuth Service
+4) Enter connection name and connection link name
+5) Choose desk related scopes
+6) Create and Connect then replace connection linkname in code instead “deskoperation” and "cliqoperation" for 
+cliqoperation
+
+SCOPE for deskoperation : Desk.tickets.READ, Desk.settings.READ , Desk.basic.READ
+SCOPE for cliqoperation : ZohoCliq.Webhooks.CREATE
+*/
+
+
+Module : Ticket
+Argument:
+Name : ticketID - Value : Ticket Id
+Name : contactName : Value : Contact Name
+Name : team - Value : Team
+Name : subj - Value : Subject
+Name : ticketNumber - Value : Ticket Number
+
+orgId = “644088596”;//replace ORGID
+getTicketDetails = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/tickets/" + ticketID
+	type :GET
+	connection : "deskoperation"
+];
+webURL = getTicketDetails.get("webUrl");
+threadResponse = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/tickets/" + ticketID + "/threads"
+	type :GET
+	connection : "deskoperation"
+];
+count = threadResponse.get("data").size();
+ChannelID = "CT-32139398128749171212412";
+//replace CHANNEL ID here
+if(team != null && team != "") 
+{
+listofteamMenbers = invokeurl
+[
+	url: "https://desk.zoho.com/api/v1/teams/"+team+"/members"
+	type: GET
+	connection : "deskoperation"
+];
+listMenbers=listofteamMenbers.get("data");
+for each teamMember in listMenbers
+{
+	email=teamMember.get("emailId").trim();
+	header = Map();
+	header.put("Content-Type","application/json");
+	formatted_msg = {"text":"A New ticket received from " + contactName,"bot":{"name":"NexZen Accounting","image":"https://d1ydxa2xvtn0b5.cloudfront.net/app/images/logo.3b82871801fec2d02ebb.png"},"card":{"theme":"modern-inline"},"slides":{{"type":"list","title":"","buttons":{{"label":"#" + ticketNumber,"action":{"type":"open.url","data":{"web":webURL}},"type":"+"}},"data":{"Subject : " + subj}}}};
+	//response = invokeurl
+	//[
+	//	url :"https://cliq.zoho.com/api/v2/chats/" + ChannelID + "/message"
+	//	type :POST
+	//	parameters:formatted_msg.toString()
+	//	headers:header
+	//	connection : "cliqoperation"
+	//];
+	//info response;
+	//the below code to send all Agents in the team..If need to send all Agents then uncomment the below lines and comment the above lines else leave it as it is.
+	response = invokeurl
+	[
+		url :"https://cliq.zoho.com/api/v2/buddies/" + email + "/message"
+		type :POST
+		parameters:formatted_msg.toString()
+		headers:header
+		connection : "cliqoperation"
+	];
+	info response;
+}
+}
+

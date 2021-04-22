@@ -1,0 +1,78 @@
+/*
+To create ticket via API using. Deluge script
+
+Subject, departmentId. and contactID is required param for ticket creation
+
+Connection Creation:
+1) Setup->Connection
+2) Create New connection
+3) Choose ZohoOAuth Service
+4) Enter connection name and connection link name
+5) Choose desk related scopes
+6) Create and Connect then replace connection linkname in code instead “deskoperation”
+
+SCOPE : Desk.tickets.CREATE , Desk.tickets.READ , Desk.tickets.UPDATE,  Desk.search.READ , Desk.contacts.READ, 
+Desk.contacts.CREATE
+*/
+
+
+SampleCode:
+orgId = "644088596";//replace orgID
+subj = "Test ticket created via API";//mandatory field value
+Email = "test@zoho.com";//mandatory Field value
+contactName="testzoho";
+departmentID = "182208000030434438";//mandatory Field Value
+status = "Open";
+channel = "Email";
+size=0;
+getcontactDetails = invokeurl
+[
+url :"https://desk.zoho.com/api/v1/contacts/search?limit=1&from=0&email=" + encodeUrl(Email)
+	type :GET
+	connection:"deskoperation"
+];
+//info getcontactDetails;
+size=getcontactDetails.get("data").size();
+info size;
+if (size > 0) 
+{
+contactID = getcontactDetails.get("data").get(0).get("id");
+info contactID;
+}
+else 
+{
+contactParam=map();
+contactParam.put("lastName", contactName);
+contactParam.put("email", Email);
+createContact = invokeurl
+[
+	url: "https://desk.zoho.com/api/v1/contacts"
+	type: POST
+	parameters: contactParam.toString()
+	connection:"deskoperation"
+];
+//info createContact;
+contactID = createContact.get("id");
+info contactID;
+}
+//info getcontactDetails;
+//contactID = getcontactDetails.get("data").get(0).get("id");
+//info contactID;
+//info departmentID;
+customparam = Map();
+customparam.put("cf_first_name",FName);
+param = Map();
+param.put("subject",subj);
+param.put("contactId",contactID);
+param.put("departmentId",departmentID);
+param.put("channel",channel);
+param.put("status",status);
+param.put("cf",customparam);
+createTicket = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/tickets"
+	type :POST
+	parameters:param.toString()
+	connection:"deskoperation"
+];
+info createTicket;

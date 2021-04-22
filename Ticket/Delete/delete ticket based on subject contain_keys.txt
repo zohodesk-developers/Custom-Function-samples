@@ -1,0 +1,38 @@
+/*Create workflow onCreate ticket event and associate this below custom function to delete if subject contain the specified subjectkeys in the "subjectkeys" in code
+
+Connection Creation:
+1) Setup->Connection
+2) Create New connection
+3) Choose ZohoOAuth Service
+4) Enter connection name and connection link name
+5) Choose desk related scopes
+6) Create and Connect then replace connection linkname in code instead “deskoperation”
+
+SCOPE : Desk.tickets.DELETE
+*/
+
+Module : Tickets
+
+Argument 
+Name : ticketID - Value : TicketId
+Name : subj     - Value : Subject
+
+Sample code :
+
+ORGID = "644088596";//replace ORGID
+jsonString = {"ticketIds":"["+ticketID+"]"};
+subjectkeys={"Auto Reply","Outbound Unanswered Call"};//you can mention the key value here
+param=List();
+param.addAll(subjectkeys);
+for each subjectkey in param
+{
+if(subj.containsIgnoreCase(subjectkey)){
+       deleteTicket = invokeurl
+	[
+		url :"https://desk.zoho.com/api/v1/tickets/moveToTrash"
+		type :POST
+		parameters:jsonString.toString()
+		connection:"deskoperation"
+	];
+}
+}

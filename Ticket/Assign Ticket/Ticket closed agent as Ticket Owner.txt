@@ -1,0 +1,54 @@
+/*
+Ticket Closed by update as a ticket owner
+
+Connection Creation:
+1) Setup->Connection
+2) Create New connection
+3) Choose ZohoOAuth Service
+4) Enter connection name and connection link name
+5) Choose desk related scopes
+6) Create and Connect then replace connection linkname in code instead “deskoperation”
+
+SCOPE :Desk.tickets.READ , Desk.tickets.UPDATE
+*/
+Module : Ticket
+
+Argument:
+Name : ticketID - Value : Ticket Id
+
+Sample Code:
+
+orgId = "644088596";//replace ORGID
+getTicketHistory = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/tickets/" + ticketID + "/history"
+	type :GET
+        connection:"deskoperation"
+];
+//info getTicketHistory;
+ticketHistory = getTicketHistory.toList();
+//info ticketHistory;
+for each  history in ticketHistory
+{
+    if(history.get("name").toString().equalsIgnoreCase("Ticket_Updated"))
+	{
+        name1 = history.get("changes").toString().get("field");
+        newstatus = history.get("changes").toString().get("newValue");
+        if(name1=="Status" && newstatus=="Closed"){
+	    AgentID=history.get("agentId");
+		break;
+		}
+	}
+}
+info name1;
+info agentId;
+jsonString = {"assigneeId":agentId};
+//info jsonString;
+updateTicket = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/tickets/" + ticketID
+	type :PATCH
+	parameters:jsonString.toString()
+	connection:"deskoperation"
+];
+info updateTicket;

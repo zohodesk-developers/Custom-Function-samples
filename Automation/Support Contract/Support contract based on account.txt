@@ -1,0 +1,127 @@
+/*
+Contract based support hours reduced. Every account stored with support offer hours. When ticket time entry created for particular account then  that 
+Will reduced in accounts when offers time become zero then email will notify to customer and admin
+
+Connection Creation:
+1) Setup->Connection
+2) Create New connection
+3) Choose ZohoOAuth Service
+4) Enter connection name and connection link name
+5) Choose desk related scopes
+6) Create and Connect then replace connection linkname in code instead “deskoperation”
+
+SCOPE : Desk.tickets.READ, Desk.contacts.READ, Desk.tickets.UPDATE, Desk.contacts.UPDATE
+*/
+
+Prerequest :
+In Account Module customer must create 3 Custom Field
+
+Agent Cost Per Hour - TEXT TYPE Field
+Offer in Hour - INTEGER TYPE Field
+Offer Left In Seconds - TEXT TYPE Field
+
+In TimeEntry Module create one TEXT TYPE Field
+
+Discount - TEXT TYPE Field
+
+
+Sample Code:
+
+Module : TimeEntry
+
+Argument:
+Name : ticketID - Value Ticket Id
+Name : timeEntryID - Value : Time Entry Id
+
+Sample code:
+ORGID = "644088596";
+hour = 0;
+minutes = 0;
+seconds = 0;
+getTicketDetails = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/tickets/" + ticketID
+	type :GET
+	connection : “deskoperation”
+];
+//info getTicketDetails;
+accountID = getTicketDetails.get("accountId");
+//info accountID;
+getTicketAccountDetails = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/accounts/" + accountID
+	type :GET
+	connection : “deskoperation”
+];
+agenthour = getTicketAccountDetails.get("customFields").get("Agent Cost Per Hour").toDecimal();
+OfferHour = getTicketAccountDetails.get("customFields").get("Offer in Hour").toDecimal();
+OfferHourinseconds = getTicketAccountDetails.get("customFields").get("Offer Left In Seconds”);
+info OfferHourinseconds;
+if(OfferHourinseconds.toString() == "" || OfferHourinseconds.toString() == null)
+{
+	OfferHourinseconds = OfferHour * 3600;
+	OfferHourinseconds = OfferHourinseconds.toNumber();
+}
+//info agenthour;
+agenthourinseconds = agenthour / 3600;
+//info agenthourinseconds;
+getTimeEntry = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/tickets/" + ticketID + "/timeEntry/" + timeEntryID
+	type :GET
+	connection : “deskoperation”
+];
+extime = getTimeEntry.get("executedTime");
+//info extime;
+//info getTimeEntryy;
+hour = getTimeEntry.get("hoursSpent").toNumber();
+minutes = getTimeEntry.get("minutesSpent").toNumber();
+seconds = getTimeEntry.get("secondsSpent").toNumber();
+hoursinseconds = hour * 3600;
+minutsinseconds = minutes * 60;
+totalseconds = seconds.abs() + hoursinseconds.abs() + minutsinseconds.abs();
+//info totalseconds;
+if(OfferHourinseconds > 0)
+{
+	if(OfferHourinseconds < totalseconds)
+	{
+		totalseconds = totalseconds - OfferHourinseconds.toNumber();
+		totalcost = totalseconds * agenthourinseconds;
+		discount = OfferHourinseconds.toNumber() * agenthourinseconds;
+		totalcost = totalcost.round(2);
+		OfferHourinseconds = 0;
+	}
+	else
+	{
+		OfferHourinseconds = OfferHourinseconds.toNumber() - totalseconds;
+		info "offer" + OfferHourinseconds;
+		discount = totalseconds * agenthourinseconds;
+		totalcost = 0.0;
+	}
+	jsonAccountUpdate = {"customFields":{"Offer Left In Seconds":OfferHourinseconds}};
+	updateAccount = invokeurl
+	[
+		url :"https://desk.zoho.com/api/v1/accounts/" + accountID
+		type :PATCH
+		parameters:jsonAccountUpdate.toString()
+		connection : “deskoperation”
+	];
+	info updateAccount;
+}
+else
+{
+	totalcost = totalseconds * agenthourinseconds;
+	totalcost = totalcost.round(2);
+	discount = 0;
+}
+discountamount = discount.toString() + " INR";
+//Mention you currency locale Here like $ or USD
+jsonString = {"totalCost":totalcost,"executedTime":extime,"customFields":{"Discount":discountamount}};
+updateTimeEntry = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/tickets/" + ticketID + "/timeEntry/" + timeEntryID
+	type :PATCH
+	parameters:jsonString.toString()
+	connection : “deskoperation”
+];
+info updateTimeEntry;

@@ -1,0 +1,64 @@
+/*CRM end On Status field update workflow will trigger this custom function(must create custom function in Action steps) and update status of the task in CRM to DESK end
+
+Need to configure this function at CRM end
+
+Connection Creation:
+1) Setup->Connection
+2) Create New connection
+3) Choose ZohoOAuth Service
+4) Enter connection name and connection link name
+5) Choose desk related scopes
+6) Create and Connect then replace connection linkname in code instead “deskoperation”
+
+SCOPE  : Desk.activities.CREATE , Desk.activities.tasks.CREATE , Desk.settings.READ , Desk.basic.READ
+*/
+
+Argument:
+Name : taskID  -  Value : TaskId
+Name : status  -  Value : Status
+Name : description-  Value : Description
+Name : subj-  Value : Subject
+Name : priority-  Value : Priority
+Name : ownerID-  Value : Task Owner ID
+Name : desktaskID-  Value : DeskTaskID
+Name : category-  Value : Category
+
+Sample code:
+
+ORGID = "644088596";
+taskID = desktaskID.toString();
+userlist = zoho.crm.invokeConnector("crm.getusers",{"type":"ActiveUsers"},"crmconnectionname").get("response").get("users");
+	info userlist;
+	for each  rec in userlist
+	{
+		userid = rec.get("id");
+		if(userid == ownerID)
+		{
+			owneremail = rec.get("email");
+		}
+	}
+}
+if(owneremail != "" && owneremail != null){
+getDeskAgents = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/agents?searchStr=" + encodeUrl(owneremail)
+	type :GET
+	connection : “deskoperation”
+];
+info getDeskAgents;
+AgentId= getDeskAgents.get("data").get(0).get("id");
+TaskMap = Map();
+TaskMap.put("subject",subj.trim());
+TaskMap.put("status",status);
+TaskMap.put("priority",priority);
+TaskMap.put("ownerId",AgentId);
+TaskMap.put("category",category);
+TaskMap.put("description",description);
+updateTask = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/tasks/" + taskID
+	type :POST
+	parameters:TaskMap.toString()
+	connection : "deskoperation"
+];
+info updateTask;

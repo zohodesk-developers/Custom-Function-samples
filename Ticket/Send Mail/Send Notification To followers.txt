@@ -1,0 +1,50 @@
+
+/*
+Send Email to ticket followers..
+
+Connection Creation:
+1) Setup->Connection
+2) Create New connection
+3) Choose ZohoOAuth Service
+4) Enter connection name and connection link name
+5) Choose desk related scopes
+6) Create and Connect then replace connection linkname in code instead “deskoperation”
+
+SCOPE : Desk.tickets.READ, Desk.tickets.UPDATE, Desk.settings.READ , Desk.basic.READ
+*/
+Module : Ticket
+Argument :
+Name : ticketID - Value : Ticket Id
+
+Sample Code:
+orgId = "644088596";
+getFollowers = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/tickets/" + ticketID + "/followers"
+	type :GET
+	connection"deskoperation"
+];
+info getFollowers;
+ListOffollowers = getFollowers.get("data");
+count = getFollowers.get("data").size();
+info count;
+assigneeID = "";
+for each  follower in ListOffollowers
+{
+    getAgents = invokeurl
+	[
+	url :"https://desk.zoho.com/api/v1/agents/"+follower.get("id").trim()
+	type :GET
+	connection"deskoperation"
+	];
+	assigneeID = getAgents.get("emailId") + "," + assigneeID;
+}
+assigneeID=assigneeID.subText(0,assigneeID.length()-1);
+info assigneeID;
+sendmail
+[
+	from :zoho.adminuserid
+	to :assigneeID
+	subject :"Test Please ignore this email"
+	message :"Test for followers email notification"
+]

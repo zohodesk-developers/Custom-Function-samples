@@ -1,0 +1,64 @@
+/*
+Contact email domain based contact and account association sample code
+
+Connection Creation:
+1) Setup->Connection
+2) Create New connection
+3) Choose ZohoOAuth Service
+4) Enter connection name and connection link name
+5) Choose desk related scopes
+6) Create and Connect then replace connection linkname in code instead “deskoperation”
+
+SCOPE :Desk.search.READ , Desk.contacts.READ , Desk.contacts.UPDATE , Desk.tickets.UPDATE
+*/
+Module : Ticket
+
+Argument:
+Name : ticketID - Value : Ticket Id
+Name : contactID - Value : Contact Id
+Name : subj - Value : Subject
+
+Sample Code:
+
+ORGID = "644088596";//Replace ORGID
+domainSuffix = subj.subString(subj.indexOf("No:") + 3,subj.indexOf("is")-1);
+domainValue = domainSuffix.trim();
+info domainValue;
+accountID="";
+searchAccountByDomain = invokeurl
+[
+    url :"https://desk.zoho.com/api/v1/accounts/search?limit=100&_all=" + domainValue
+	type :GET
+	connection:"deskoperation"
+];
+info searchAccountByDomain;
+//domain="";
+accountdetails = searchAccountByDomain.get("data").toString();
+count=accountdetails.size();
+if(count > 0){
+for each  account in accountdetails
+{
+    domain=account.get("customFields").get("Order ID").toString();
+    if(domain.contains(domainValue)){
+         accountID=account.get("id");
+	}
+}
+}
+jsonString = {"accountId":accountID};
+updatecontact = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/contacts/" + contactID
+	type :PATCH
+	parameters:jsonString.toString()
+	connection:"deskoperation"
+];
+info updatecontact;
+jsonString1 = {"cf":{"cf_custom_field":domainValue}};
+updateTicket = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/tickets/" + ticketID
+	type :PATCH
+	parameters:jsonString1.toString()
+	connection:"deskoperation"
+];
+info updateTicket;

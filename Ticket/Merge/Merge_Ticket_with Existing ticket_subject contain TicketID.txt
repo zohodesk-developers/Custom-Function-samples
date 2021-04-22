@@ -1,0 +1,83 @@
+/*
+This function will merge the incoming ticket coming with old ticket Number in it's subject with format [##TicketID##]
+
+Connection Creation:
+1) Setup->Connection
+2) Create New connection
+3) Choose ZohoOAuth Service
+4) Enter connection name and connection link name
+5) Choose desk related scopes
+6) Create and Connect then replace connection linkname in code instead “deskoperation”
+
+SCOPE :Desk.search.READ , Desk.tickets.READ , Desk.tickets.UPDATE
+*/
+Module : Ticket
+
+Argument : 
+Name : TicketID - Value : TicketId
+
+Sample code:
+
+//Replace your Authtoken Here
+orgId = "644088596";
+//this is your orgID
+//searchString = email;
+//info ticketNumber;
+getNewTicketDepartmentID = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/tickets/" + TicketID
+	type :GET
+	connection:"deskoperation"
+];
+DepartmentID = getNewTicketDepartmentID.get("departmentId");
+subj = getNewTicketDepartmentID.get("subject");
+ticketNumber = subj.subText(subj.indexOf("[") + 3,subj.indexOf("]") - 2).trim();
+info DepartmentID;
+param = Map();
+param.put("limit",20);
+param.put("ticketNumber",ticketNumber);
+//change ticket field name if merge based on some other field instead email field 
+//param.put("departmentId",DepartmentID);
+//this line will do the merge with in a department. if need all department case then need to uncomment this line
+listOfTicketsResp = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/tickets/search?"
+	type :GET
+	parameters:param
+	connection:"deskoperation"
+];
+info listOfTicketsResp;
+info listOfTicketsResp.contains("data");
+sizedata = listOfTicketsResp.get("data").size();
+info sizedata;
+if(sizedata > 0)
+{
+	mergeTicketID = TicketID;
+	listOfTickets = listOfTicketsResp.get("data");
+	info listOfTickets.size();
+	for each  ticket in listOfTickets
+	{
+		if(DepartmentID != ticket.get("departmentId"))
+		{
+			MoveTicket = invokeurl
+			[
+				url :"https://desk.zoho.com/api/v1/tickets/" + ticket.get("id") + "/move?departmentId=" + DepartmentID
+				type :POST
+				connection:"deskoperation"
+			];
+		}
+		// Please uncomment this part of code if merge ticket created in one department and response received in another department(parent - Child ticket Merge)
+		parameterMap = {"ids":{mergeTicketID}};
+		mergeTicket = invokeurl
+		[
+			url :"https://desk.zoho.com/api/v1/tickets/" + ticket.get("id") + "/merge"
+			type :POST
+			parameters:parameterMap.toString()
+			connection:"deskoperation"
+		];
+		if(mergeTicket != null && mergeTicket.get("id") != null)
+		{
+			mergeTicketID = mergeTicket.get("id");
+		}
+	}
+}

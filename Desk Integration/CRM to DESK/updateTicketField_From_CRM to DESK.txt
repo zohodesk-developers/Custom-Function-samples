@@ -1,0 +1,53 @@
+/*
+To get CRM record information and update in ticket custom fields
+
+Connection Creation:
+1) Setup->Connection
+2) Create New connection
+3) Choose ZohoOAuth Service
+4) Enter connection name and connection link name
+5) Choose desk related scopes
+6) Create and Connect then replace connection linkname in code instead “deskoperation”
+
+SCOPE for deskoperation : Desk.contacts.READ  , Desk.tickets.UPDATE
+SCOPE for crmconnection : ZohoCRM.modules.ALL
+*/
+
+Argument:
+Name : taskID  -  Value : TaskId
+Name : status  -  Value : Status
+Name : description-  Value : Description
+Name : subj-  Value : Subject
+Name : priority-  Value : Priority
+Name : ownerID-  Value : Task Owner ID
+Name : desktaskID-  Value : DeskTaskID
+Name : category-  Value : Category
+
+Sample Code:
+ORGID = "644088596";//replace your ORGID
+getContactDetails = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/contacts/" + contactID
+	type :GET
+	connection : "deskoperation"
+];
+crmContactID = getContactDetails.get("zohoCRMContact").get("id");
+if(crmContactID != null && crmContactID != ""){
+crmContactDetails=zoho.crm.getRecordById("Contacts",crmContactID,"crmconnection");
+//info crmContactDetails;
+contactOwner = crmContactDetails.get("owner").get("id");
+//info contactOwner;
+accountID=crmContactDetails.get("account").get("id")
+//info accountID;
+crmAccountDetails = zoho.crm.getRecordById("Accounts", accountID,"crmconnection");
+info crmAccountDetails;
+accountType =  crmAccountDetails.get("Account_Type");
+info accountType;
+jsonstring = {"cf":{"cf_account_type":accountType,"cf_contact_owner"":contactOwner}};
+updateTicketAgent = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/tickets/" + ticketID
+	type :PATCH
+	parameters:jsonstring.toString()
+	connection : "deskoperation"
+];

@@ -1,0 +1,1079 @@
+/*
+This function assign ticket to specific agent when ticket moved to another department
+
+Connection Creation:
+1) Setup->Connection
+2) Create New connection
+3) Choose ZohoOAuth Service
+4) Enter connection name and connection link name
+5) Choose desk related scopes
+6) Create and Connect then replace connection linkname in code instead “deskoperation”
+
+SCOPE : Desk.tickets.READ, Desk.basic.READ
+*/
+
+
+Module : Ticket
+
+Argument:
+
+Name : ticketID - Value : Ticket Id
+Name : email - Value : Email (under contact information)
+
+Sample Code:
+
+ORGID = "644088596";
+emailcontent = "This is test email from zoho. please ignore this email";
+//replace email text body
+i = 0;
+getTicketAttachment = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/tickets/" + ticketID + "/attachments?limit=15"
+	type :GET
+	connection:"deskoperation"
+];
+//info getTicketAttachment.get("data");
+countattachment = getTicketAttachment.get("data").size();
+attachment = getTicketAttachment.get("data");
+//info countattachment;
+currentTime = zoho.currenttime.toString("yyyy-MM-dd'T'HH:mm:ss'.00Z'","GMT");
+hour = currentTime.subText(currentTime.indexOf("T") + 1,currentTime.indexOf(":"));
+hour = hour.toNumber();
+info hour;
+for each  attach in attachment
+{
+	currentTime = zoho.currenttime.toString("yyyy-MM-dd'T'HH:mm:ss'.00Z'","GMT");
+	hour = currentTime.subText(currentTime.indexOf("T") + 1,currentTime.indexOf(":"));
+	hour = hour.toNumber();
+	cTime = attach.get("createdTime").toString();
+	//info cTime;
+	hour1 = cTime.subText(cTime.indexOf("T") + 1,cTime.indexOf(":"));
+	hour1 = hour1.toNumber();
+	info hour1;
+	if(hour1 == hour)
+	{
+		i = i + 1;
+	}
+}
+info i;
+countattachment = i;
+if(countattachment == 1)
+{
+	attachmentUrl = attachment.get("0").getJSON("href");
+	downloadFile = invokeurl
+	[
+		url :attachmentUrl
+		type :GET
+		connection:"deskoperation"
+	];
+	sendmail
+	[
+		from :zoho.adminuserid
+		to :email
+		subject :"Test for SubTab attachments send on tikcet closure"
+		message :emailcontent
+		content type :HTML
+		Attachments :file:downloadFile
+	]
+}
+if(countattachment == 2)
+{
+	attachmentUrl = attachment.get("0").getJSON("href");
+	attachmentUrl1 = attachment.get("1").getJSON("href");
+	downloadFile = invokeurl
+	[
+		url :attachmentUrl
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile1 = invokeurl
+	[
+		url :attachmentUrl1
+		type :GET
+		connection:"deskoperation"
+	];
+	sendmail
+	[
+		from :zoho.adminuserid
+		to :email
+		subject :"Test for SubTab attachments send on tikcet closure"
+		message :emailcontent
+		content type :HTML
+		Attachments :file:downloadFile,file:downloadFile1
+	]
+}
+if(countattachment == 3)
+{
+	attachmentUrl = attachment.get("0").getJSON("href");
+	attachmentUrl1 = attachment.get("1").getJSON("href");
+	attachmentUrl2 = attachment.get("2").getJSON("href");
+	downloadFile = invokeurl
+	[
+		url :attachmentUrl
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile1 = invokeurl
+	[
+		url :attachmentUrl1
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile2 = invokeurl
+	[
+		url :attachmentUrl2
+		type :GET
+		connection:"deskoperation"
+	];
+	sendmail
+	[
+		from :zoho.adminuserid
+		to :"naveen.gs@zohocorp.com,vijaytest2607@gmail.com"
+		subject :"Test for SubTab attachments send on tikcet closure"
+		message :emailcontent
+		content type :HTML
+		Attachments :file:downloadFile,file:downloadFile1,file:downloadFile2
+	]
+}
+if(countattachment == 4)
+{
+	attachmentUrl = attachment.get("0").getJSON("href");
+	attachmentUrl1 = attachment.get("1").getJSON("href");
+	attachmentUrl2 = attachment.get("2").getJSON("href");
+	attachmentUrl3 = attachment.get("3").getJSON("href");
+	downloadFile = invokeurl
+	[
+		url :attachmentUrl
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile1 = invokeurl
+	[
+		url :attachmentUrl1
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile2 = invokeurl
+	[
+		url :attachmentUrl2
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile3 = invokeurl
+	[
+		url :attachmentUrl3
+		type :GET
+		connection:"deskoperation"
+	];
+	sendmail
+	[
+		from :zoho.adminuserid
+		to :"naveen.gs@zohocorp.com,vijaytest2607@gmail.com"
+		subject :"Test for SubTab attachments send on tikcet closure"
+		message :emailcontent
+		content type :HTML
+		Attachments :file:downloadFile,file:downloadFile1,file:downloadFile2,file:downloadFile3
+	]
+}
+if(countattachment == 5)
+{
+	attachmentUrl = attachment.get("0").getJSON("href");
+	attachmentUrl1 = attachment.get("1").getJSON("href");
+	attachmentUrl2 = attachment.get("2").getJSON("href");
+	attachmentUrl3 = attachment.get("3").getJSON("href");
+	attachmentUrl4 = attachment.get("4").getJSON("href");
+	downloadFile = invokeurl
+	[
+		url :attachmentUrl
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile1 = invokeurl
+	[
+		url :attachmentUrl1
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile2 = invokeurl
+	[
+		url :attachmentUrl2
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile3 = invokeurl
+	[
+		url :attachmentUrl3
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile4 = invokeurl
+	[
+		url :attachmentUrl4
+		type :GET
+		connection:"deskoperation"
+	];
+	sendmail
+	[
+		from :zoho.adminuserid
+		to :"naveen.gs@zohocorp.com,vijaytest2607@gmail.com"
+		subject :"Test for SubTab attachments send on tikcet closure"
+		message :emailcontent
+		content type :HTML
+		Attachments :file:downloadFile,file:downloadFile1,file:downloadFile2,file:downloadFile3,file:downloadFile4
+	]
+}
+if(countattachment == 6)
+{
+	attachmentUrl = attachment.get("0").getJSON("href");
+	attachmentUrl1 = attachment.get("1").getJSON("href");
+	attachmentUrl2 = attachment.get("2").getJSON("href");
+	attachmentUrl3 = attachment.get("3").getJSON("href");
+	attachmentUrl4 = attachment.get("4").getJSON("href");
+	attachmentUrl5 = attachment.get("5").getJSON("href");
+	downloadFile = invokeurl
+	[
+		url :attachmentUrl
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile1 = invokeurl
+	[
+		url :attachmentUrl1
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile2 = invokeurl
+	[
+		url :attachmentUrl2
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile3 = invokeurl
+	[
+		url :attachmentUrl3
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile4 = invokeurl
+	[
+		url :attachmentUrl4
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile5 = invokeurl
+	[
+		url :attachmentUrl5
+		type :GET
+		connection:"deskoperation"
+	];
+	sendmail
+	[
+		from :zoho.adminuserid
+		to :"naveen.gs@zohocorp.com,vijaytest2607@gmail.com"
+		subject :"Test for SubTab attachments send on tikcet closure"
+		message :emailcontent
+		content type :HTML
+		Attachments :file:downloadFile,file:downloadFile1,file:downloadFile2,file:downloadFile3,file:downloadFile4,file:downloadFile5
+	]
+}
+if(countattachment == 7)
+{
+	attachmentUrl = attachment.get("0").getJSON("href");
+	attachmentUrl1 = attachment.get("1").getJSON("href");
+	attachmentUrl2 = attachment.get("2").getJSON("href");
+	attachmentUrl3 = attachment.get("3").getJSON("href");
+	attachmentUrl4 = attachment.get("4").getJSON("href");
+	attachmentUrl5 = attachment.get("5").getJSON("href");
+	attachmentUrl6 = attachment.get("6").getJSON("href");
+	downloadFile = invokeurl
+	[
+		url :attachmentUrl
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile1 = invokeurl
+	[
+		url :attachmentUrl1
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile2 = invokeurl
+	[
+		url :attachmentUrl2
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile3 = invokeurl
+	[
+		url :attachmentUrl3
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile4 = invokeurl
+	[
+		url :attachmentUrl4
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile5 = invokeurl
+	[
+		url :attachmentUrl5
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile6 = invokeurl
+	[
+		url :attachmentUrl6
+		type :GET
+		connection:"deskoperation"
+	];
+	sendmail
+	[
+		from :zoho.adminuserid
+		to :"naveen.gs@zohocorp.com,vijaytest2607@gmail.com"
+		subject :"Test for SubTab attachments send on tikcet closure"
+		message :emailcontent
+		content type :HTML
+		Attachments :file:downloadFile,file:downloadFile1,file:downloadFile2,file:downloadFile3,file:downloadFile4,file:downloadFile5,file:downloadFile6
+	]
+}
+if(countattachment == 8)
+{
+	attachmentUrl = attachment.get("0").getJSON("href");
+	attachmentUrl1 = attachment.get("1").getJSON("href");
+	attachmentUrl2 = attachment.get("2").getJSON("href");
+	attachmentUrl3 = attachment.get("3").getJSON("href");
+	attachmentUrl4 = attachment.get("4").getJSON("href");
+	attachmentUrl5 = attachment.get("5").getJSON("href");
+	attachmentUrl6 = attachment.get("6").getJSON("href");
+	attachmentUrl7 = attachment.get("7").getJSON("href");
+	downloadFile = invokeurl
+	[
+		url :attachmentUrl
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile1 = invokeurl
+	[
+		url :attachmentUrl1
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile2 = invokeurl
+	[
+		url :attachmentUrl2
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile3 = invokeurl
+	[
+		url :attachmentUrl3
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile4 = invokeurl
+	[
+		url :attachmentUrl4
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile5 = invokeurl
+	[
+		url :attachmentUrl5
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile6 = invokeurl
+	[
+		url :attachmentUrl6
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile7 = invokeurl
+	[
+		url :attachmentUrl7
+		type :GET
+		connection:"deskoperation"
+	];
+	sendmail
+	[
+		from :zoho.adminuserid
+		to :"naveen.gs@zohocorp.com,vijaytest2607@gmail.com"
+		subject :"Test for SubTab attachments send on tikcet closure"
+		message :emailcontent
+		content type :HTML
+		Attachments :file:downloadFile,file:downloadFile1,file:downloadFile2,file:downloadFile3,file:downloadFile4,file:downloadFile5,file:downloadFile6,file:downloadFile7
+	]
+}
+if(countattachment == 9)
+{
+	attachmentUrl = attachment.get("0").getJSON("href");
+	attachmentUrl1 = attachment.get("1").getJSON("href");
+	attachmentUrl2 = attachment.get("2").getJSON("href");
+	attachmentUrl3 = attachment.get("3").getJSON("href");
+	attachmentUrl4 = attachment.get("4").getJSON("href");
+	attachmentUrl5 = attachment.get("5").getJSON("href");
+	attachmentUrl6 = attachment.get("6").getJSON("href");
+	attachmentUrl7 = attachment.get("7").getJSON("href");
+	attachmentUrl8 = attachment.get("8").getJSON("href");
+	downloadFile = invokeurl
+	[
+		url :attachmentUrl
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile1 = invokeurl
+	[
+		url :attachmentUrl1
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile2 = invokeurl
+	[
+		url :attachmentUrl2
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile3 = invokeurl
+	[
+		url :attachmentUrl3
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile4 = invokeurl
+	[
+		url :attachmentUrl4
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile5 = invokeurl
+	[
+		url :attachmentUrl5
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile6 = invokeurl
+	[
+		url :attachmentUrl6
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile7 = invokeurl
+	[
+		url :attachmentUrl7
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile8 = invokeurl
+	[
+		url :attachmentUrl8
+		type :GET
+		connection:"deskoperation"
+	];
+	sendmail
+	[
+		from :zoho.adminuserid
+		to :"naveen.gs@zohocorp.com,vijaytest2607@gmail.com"
+		subject :"Test for SubTab attachments send on tikcet closure"
+		message :emailcontent
+		content type :HTML
+		Attachments :file:downloadFile,file:downloadFile1,file:downloadFile2,file:downloadFile3,file:downloadFile4,file:downloadFile5,file:downloadFile6,file:downloadFile7,file:downloadFile8
+	]
+}
+if(countattachment == 10)
+{
+	attachmentUrl = attachment.get("0").getJSON("href");
+	attachmentUrl1 = attachment.get("1").getJSON("href");
+	attachmentUrl2 = attachment.get("2").getJSON("href");
+	attachmentUrl3 = attachment.get("3").getJSON("href");
+	attachmentUrl4 = attachment.get("4").getJSON("href");
+	attachmentUrl5 = attachment.get("5").getJSON("href");
+	attachmentUrl6 = attachment.get("6").getJSON("href");
+	attachmentUrl7 = attachment.get("7").getJSON("href");
+	attachmentUrl8 = attachment.get("8").getJSON("href");
+	attachmentUrl9 = attachment.get("9").getJSON("href");
+	downloadFile = invokeurl
+	[
+		url :attachmentUrl
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile1 = invokeurl
+	[
+		url :attachmentUrl1
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile2 = invokeurl
+	[
+		url :attachmentUrl2
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile3 = invokeurl
+	[
+		url :attachmentUrl3
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile4 = invokeurl
+	[
+		url :attachmentUrl4
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile5 = invokeurl
+	[
+		url :attachmentUrl5
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile6 = invokeurl
+	[
+		url :attachmentUrl6
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile7 = invokeurl
+	[
+		url :attachmentUrl7
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile8 = invokeurl
+	[
+		url :attachmentUrl8
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile9 = invokeurl
+	[
+		url :attachmentUrl9
+		type :GET
+		connection:"deskoperation"
+	];
+	sendmail
+	[
+		from :zoho.adminuserid
+		to :"naveen.gs@zohocorp.com,vijaytest2607@gmail.com"
+		subject :"Test for SubTab attachments send on tikcet closure"
+		message :emailcontent
+		content type :HTML
+		Attachments :file:downloadFile,file:downloadFile1,file:downloadFile2,file:downloadFile3,file:downloadFile4,file:downloadFile5,file:downloadFile6,file:downloadFile7,file:downloadFile8,file:downloadFile9
+	]
+}
+if(countattachment == 11)
+{
+	attachmentUrl = attachment.get("0").getJSON("href");
+	attachmentUrl1 = attachment.get("1").getJSON("href");
+	attachmentUrl2 = attachment.get("2").getJSON("href");
+	attachmentUrl3 = attachment.get("3").getJSON("href");
+	attachmentUrl4 = attachment.get("4").getJSON("href");
+	attachmentUrl5 = attachment.get("5").getJSON("href");
+	attachmentUrl6 = attachment.get("6").getJSON("href");
+	attachmentUrl7 = attachment.get("7").getJSON("href");
+	attachmentUrl8 = attachment.get("8").getJSON("href");
+	attachmentUrl9 = attachment.get("9").getJSON("href");
+	attachmentUrl10 = attachment.get("10").getJSON("href");
+	downloadFile = invokeurl
+	[
+		url :attachmentUrl
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile1 = invokeurl
+	[
+		url :attachmentUrl1
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile2 = invokeurl
+	[
+		url :attachmentUrl2
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile3 = invokeurl
+	[
+		url :attachmentUrl3
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile4 = invokeurl
+	[
+		url :attachmentUrl4
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile5 = invokeurl
+	[
+		url :attachmentUrl5
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile6 = invokeurl
+	[
+		url :attachmentUrl6
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile7 = invokeurl
+	[
+		url :attachmentUrl7
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile8 = invokeurl
+	[
+		url :attachmentUrl8
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile9 = invokeurl
+	[
+		url :attachmentUrl9
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile10 = invokeurl
+	[
+		url :attachmentUrl10
+		type :GET
+		connection:"deskoperation"
+	];
+	sendmail
+	[
+		from :zoho.adminuserid
+		to :"navinhereforyou@gmail.com,vijaytest2607@gmail.com,vijayakumar.b@zohocorp.com"
+		subject :"Test for SubTab attachments send on tikcet closure"
+		message :emailcontent
+		content type :HTML
+		Attachments :file:downloadFile,file:downloadFile1,file:downloadFile2,file:downloadFile3,file:downloadFile4,file:downloadFile5,file:downloadFile6,file:downloadFile7,file:downloadFile8,file:downloadFile9,file:downloadFile10
+	]
+}
+if(countattachment == 12)
+{
+	attachmentUrl = attachment.get("0").getJSON("href");
+	attachmentUrl1 = attachment.get("1").getJSON("href");
+	attachmentUrl2 = attachment.get("2").getJSON("href");
+	attachmentUrl3 = attachment.get("3").getJSON("href");
+	attachmentUrl4 = attachment.get("4").getJSON("href");
+	attachmentUrl5 = attachment.get("5").getJSON("href");
+	attachmentUrl6 = attachment.get("6").getJSON("href");
+	attachmentUrl7 = attachment.get("7").getJSON("href");
+	attachmentUrl8 = attachment.get("8").getJSON("href");
+	attachmentUrl9 = attachment.get("9").getJSON("href");
+	attachmentUrl10 = attachment.get("10").getJSON("href");
+	attachmentUrl11 = attachment.get("11").getJSON("href");
+	downloadFile = invokeurl
+	[
+		url :attachmentUrl
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile1 = invokeurl
+	[
+		url :attachmentUrl1
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile2 = invokeurl
+	[
+		url :attachmentUrl2
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile3 = invokeurl
+	[
+		url :attachmentUrl3
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile4 = invokeurl
+	[
+		url :attachmentUrl4
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile5 = invokeurl
+	[
+		url :attachmentUrl5
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile6 = invokeurl
+	[
+		url :attachmentUrl6
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile7 = invokeurl
+	[
+		url :attachmentUrl7
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile8 = invokeurl
+	[
+		url :attachmentUrl8
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile9 = invokeurl
+	[
+		url :attachmentUrl9
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile10 = invokeurl
+	[
+		url :attachmentUrl10
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile11 = invokeurl
+	[
+		url :attachmentUrl11
+		type :GET
+		connection:"deskoperation"
+	];
+	sendmail
+	[
+		from :zoho.adminuserid
+		to :"naveen.gs@zohocorp.com,vijaytest2607@gmail.com"
+		subject :"Test for SubTab attachments send on tikcet closure"
+		message :emailcontent
+		content type :HTML
+		Attachments :file:downloadFile,file:downloadFile1,file:downloadFile2,file:downloadFile3,file:downloadFile4,file:downloadFile5,file:downloadFile6,file:downloadFile7,file:downloadFile8,file:downloadFile9,file:downloadFile10,file:downloadFile11
+	]
+}
+if(countattachment == 13)
+{
+	attachmentUrl = attachment.get("0").getJSON("href");
+	attachmentUrl1 = attachment.get("1").getJSON("href");
+	attachmentUrl2 = attachment.get("2").getJSON("href");
+	attachmentUrl3 = attachment.get("3").getJSON("href");
+	attachmentUrl4 = attachment.get("4").getJSON("href");
+	attachmentUrl5 = attachment.get("5").getJSON("href");
+	attachmentUrl6 = attachment.get("6").getJSON("href");
+	attachmentUrl7 = attachment.get("7").getJSON("href");
+	attachmentUrl8 = attachment.get("8").getJSON("href");
+	attachmentUrl9 = attachment.get("9").getJSON("href");
+	attachmentUrl10 = attachment.get("10").getJSON("href");
+	attachmentUrl11 = attachment.get("11").getJSON("href");
+	attachmentUrl12 = attachment.get("12").getJSON("href");
+	downloadFile = invokeurl
+	[
+		url :attachmentUrl
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile1 = invokeurl
+	[
+		url :attachmentUrl1
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile2 = invokeurl
+	[
+		url :attachmentUrl2
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile3 = invokeurl
+	[
+		url :attachmentUrl3
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile4 = invokeurl
+	[
+		url :attachmentUrl4
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile5 = invokeurl
+	[
+		url :attachmentUrl5
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile6 = invokeurl
+	[
+		url :attachmentUrl6
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile7 = invokeurl
+	[
+		url :attachmentUrl7
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile8 = invokeurl
+	[
+		url :attachmentUrl8
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile9 = invokeurl
+	[
+		url :attachmentUrl9
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile10 = invokeurl
+	[
+		url :attachmentUrl10
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile11 = invokeurl
+	[
+		url :attachmentUrl11
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile12 = invokeurl
+	[
+		url :attachmentUrl12
+		type :GET
+		connection:"deskoperation"
+	];
+	sendmail
+	[
+		from :zoho.adminuserid
+		to :"naveen.gs@zohocorp.com,vijaytest2607@gmail.com"
+		subject :"Test for SubTab attachments send on tikcet closure"
+		message :emailcontent
+		content type :HTML
+		Attachments :file:downloadFile,file:downloadFile1,file:downloadFile2,file:downloadFile3,file:downloadFile4,file:downloadFile5,file:downloadFile6,file:downloadFile7,file:downloadFile8,file:downloadFile9,file:downloadFile10,file:downloadFile11,file:downloadFile12
+	]
+}
+if(countattachment == 14)
+{
+	attachmentUrl = attachment.get("0").getJSON("href");
+	attachmentUrl1 = attachment.get("1").getJSON("href");
+	attachmentUrl2 = attachment.get("2").getJSON("href");
+	attachmentUrl3 = attachment.get("3").getJSON("href");
+	attachmentUrl4 = attachment.get("4").getJSON("href");
+	attachmentUrl5 = attachment.get("5").getJSON("href");
+	attachmentUrl6 = attachment.get("6").getJSON("href");
+	attachmentUrl7 = attachment.get("7").getJSON("href");
+	attachmentUrl8 = attachment.get("8").getJSON("href");
+	attachmentUrl9 = attachment.get("9").getJSON("href");
+	attachmentUrl10 = attachment.get("10").getJSON("href");
+	attachmentUrl11 = attachment.get("11").getJSON("href");
+	attachmentUrl12 = attachment.get("12").getJSON("href");
+	attachmentUrl13 = attachment.get("13").getJSON("href");
+	downloadFile = invokeurl
+	[
+		url :attachmentUrl
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile1 = invokeurl
+	[
+		url :attachmentUrl1
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile2 = invokeurl
+	[
+		url :attachmentUrl2
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile3 = invokeurl
+	[
+		url :attachmentUrl3
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile4 = invokeurl
+	[
+		url :attachmentUrl4
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile5 = invokeurl
+	[
+		url :attachmentUrl5
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile6 = invokeurl
+	[
+		url :attachmentUrl6
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile7 = invokeurl
+	[
+		url :attachmentUrl7
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile8 = invokeurl
+	[
+		url :attachmentUrl8
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile9 = invokeurl
+	[
+		url :attachmentUrl9
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile10 = invokeurl
+	[
+		url :attachmentUrl10
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile11 = invokeurl
+	[
+		url :attachmentUrl11
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile12 = invokeurl
+	[
+		url :attachmentUrl12
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile13 = invokeurl
+	[
+		url :attachmentUrl13
+		type :GET
+		connection:"deskoperation"
+	];
+	sendmail
+	[
+		from :zoho.adminuserid
+		to :"naveen.gs@zohocorp.com,vijaytest2607@gmail.com"
+		subject :"Test for SubTab attachments send on tikcet closure"
+		message :emailcontent
+		content type :HTML
+		Attachments :file:downloadFile,file:downloadFile1,file:downloadFile2,file:downloadFile3,file:downloadFile4,file:downloadFile5,file:downloadFile6,file:downloadFile7,file:downloadFile8,file:downloadFile9,file:downloadFile10,file:downloadFile11,file:downloadFile12,file:downloadFile13
+	]
+}
+if(countattachment == 15)
+{
+	attachmentUrl = attachment.get("0").getJSON("href");
+	attachmentUrl1 = attachment.get("1").getJSON("href");
+	attachmentUrl2 = attachment.get("2").getJSON("href");
+	attachmentUrl3 = attachment.get("3").getJSON("href");
+	attachmentUrl4 = attachment.get("4").getJSON("href");
+	attachmentUrl5 = attachment.get("5").getJSON("href");
+	attachmentUrl6 = attachment.get("6").getJSON("href");
+	attachmentUrl7 = attachment.get("7").getJSON("href");
+	attachmentUrl8 = attachment.get("8").getJSON("href");
+	attachmentUrl9 = attachment.get("9").getJSON("href");
+	attachmentUrl10 = attachment.get("10").getJSON("href");
+	attachmentUrl11 = attachment.get("11").getJSON("href");
+	attachmentUrl12 = attachment.get("12").getJSON("href");
+	attachmentUrl13 = attachment.get("13").getJSON("href");
+	attachmentUrl14 = attachment.get("14").getJSON("href");
+	downloadFile = invokeurl
+	[
+		url :attachmentUrl
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile1 = invokeurl
+	[
+		url :attachmentUrl1
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile2 = invokeurl
+	[
+		url :attachmentUrl2
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile3 = invokeurl
+	[
+		url :attachmentUrl3
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile4 = invokeurl
+	[
+		url :attachmentUrl4
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile5 = invokeurl
+	[
+		url :attachmentUrl5
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile6 = invokeurl
+	[
+		url :attachmentUrl6
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile7 = invokeurl
+	[
+		url :attachmentUrl7
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile8 = invokeurl
+	[
+		url :attachmentUrl8
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile9 = invokeurl
+	[
+		url :attachmentUrl9
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile10 = invokeurl
+	[
+		url :attachmentUrl10
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile11 = invokeurl
+	[
+		url :attachmentUrl11
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile12 = invokeurl
+	[
+		url :attachmentUrl12
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile13 = invokeurl
+	[
+		url :attachmentUrl13
+		type :GET
+		connection:"deskoperation"
+	];
+	downloadFile14 = invokeurl
+	[
+		url :attachmentUrl14
+		type :GET
+		connection:"deskoperation"
+	];
+	sendmail
+	[
+		from :zoho.adminuserid
+		to :"naveen.gs@zohocorp.com,vijaytest2607@gmail.com"
+		subject :"Test for SubTab attachments send on tikcet closure"
+		message :emailcontent
+		content type :HTML
+		Attachments :file:downloadFile,file:downloadFile1,file:downloadFile2,file:downloadFile3,file:downloadFile4,file:downloadFile5,file:downloadFile6,file:downloadFile7,file:downloadFile8,file:downloadFile9,file:downloadFile10,file:downloadFile11,file:downloadFile12,file:downloadFile13,file:downloadFile14
+	]
+}

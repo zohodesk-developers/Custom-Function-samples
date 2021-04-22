@@ -1,0 +1,162 @@
+/*
+Customer Must create two TEXT field named OldStatus,PreviousTime in Ticket module for all departments. Then customer to create workflow with following steps
+
+
+Connection Creation:
+1) Setup->Connection
+2) Create New connection
+3) Choose ZohoOAuth Service
+4) Enter connection name and connection link name
+5) Choose desk related scopes
+6) Create and Connect then replace connection linkname in code instead “deskoperation”
+
+SCOPE : Desk.contacts.READ , Desk.tickets.UPDATE
+*/
+
+Workflow:
+
+Execute on : Create, Field Update (choose Status Field) 
+criteria : None
+Action : choose custom function->New
+
+
+In custom function platform:
+
+Module : Ticket
+
+Argument:
+Name : ticketID - Value : TicketId
+
+Sample Code:
+
+ORGID = "644088596";//replace your ORgID
+getTicketDetails = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/tickets/" + ticketID
+	type :GET
+	connection:"deskoperation"
+];
+//info getTicketDetails;
+agentID = getTicketDetails.get("assigneeId");
+status = getTicketDetails.get("status");
+oldstatus = getTicketDetails.get("cf").get("cf_old_status");
+oldtime = getTicketDetails.get("cf").get("cf_previous_time");
+hours = 0;
+minute = 0;
+seconds = 0;
+if(oldtime != null && oldtime != "")
+{
+	info "vijay";
+	currentTime = zoho.currenttime.toString("dd-MMM-yyyy HH:mm:ss","IST");
+	currentTime = currentTime.toTime();
+	info currentTime;
+	oldtime = oldtime.toString("dd-MMM-yyyy HH:mm:ss","IST").toTime();
+	info oldtime;
+	daysbetween = oldtime.toDate().daysBetween(currentTime.toDate());
+	//info daysbetween;
+	oldhours = oldtime.toTime().getHour();
+	//info oldhours;
+	oldminute = oldtime.toTime().getMinutes();
+	oldseconds = oldtime.toTime().getSeconds();
+	curhours = currentTime.toTime().getHour();
+	curminute = currentTime.toTime().getMinutes();
+	curseconds = currentTime.toTime().getSeconds();
+	dayshours = daysbetween * 24;
+	if(daysbetween == 0)
+	{
+		seconds = 60 - oldseconds + curseconds;
+		if(seconds > 60)
+		{
+			minute = 1;
+			seconds = seconds - 60;
+		}
+		minute = minute + curminute - oldminute;
+		if(minute > 60)
+		{
+			hours = 1;
+			minute = minute - 60;
+		}
+		hours = hours + curhours - oldhours;
+	}
+	if(daysbetween == 1)
+	{
+		ohours = 23 - oldhours;
+		ominute = 59 - oldminute;
+		oseconds = 60 - oldseconds;
+		seconds = oseconds + curseconds;
+		if(seconds > 60)
+		{
+			minute = 1;
+			seconds = seconds - 60;
+		}
+		minute = minute + curminute + ominute;
+		if(minute > 60)
+		{
+			hours = 1;
+			minute = minute - 60;
+		}
+		hours = hours + curhours + ohours;
+	}
+	if(daysbetween > 1)
+	{
+		dayshours = dayshours - 24;
+		ohours = 23 - oldhours;
+		ominute = 59 - oldminute;
+		oseconds = 60 - oldseconds;
+		seconds = oseconds + curseconds;
+		if(seconds > 60)
+		{
+			minute = 1;
+			seconds = seconds - 60;
+		}
+		minute = minute + curminute + ominute;
+		if(minute > 60)
+		{
+			hours = 1;
+			minute = minute - 60;
+		}
+		hours = hours + curhours + ohours + dayshours;
+	}
+	if(hours < 10)
+	{
+		hours = "0" + hours;
+	}
+	if(minute < 10)
+	{
+		minute = "0" + minute;
+	}
+	if(seconds < 10)
+	{
+		seconds = "0" + seconds;
+	}
+	info hours;
+	info minute;
+	info seconds;
+	data = Map();
+	data.put("hoursSpent",hours);
+	data.put("minutesSpent",minute);
+	data.put("secondsSpent",seconds);
+	data.put("requestChargeType","Customer Service");
+	//data.put("ownerId",agentID);
+	//data.put("executedTime","2017-10-09T20:30:00.000Z");
+	oldstatus = "Time entry for ticket available in Status : " + oldstatus;
+	data.put("description",oldstatus);
+	updateTask = invokeurl
+	[
+		url :"https://desk.zoho.com/api/v1/tickets/" + ticketID + "/timeEntry"
+		type :POST
+		parameters:data+""
+		connection:"deskoperation"
+	];
+	info updateTask;
+}
+address = zoho.currenttime;
+info address;
+jsonString = {"cf":{"cf_previous_time":address,"cf_old_status":status}};
+updateTicketField = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/tickets/" + ticketID
+	type :PATCH
+	parameters:jsonString+""
+	connection:"deskoperation"
+];

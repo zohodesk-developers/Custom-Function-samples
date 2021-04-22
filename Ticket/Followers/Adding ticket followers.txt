@@ -1,0 +1,31 @@
+/*
+Adding ticket followers via API while create ticket
+
+Connection Creation:
+1) Setup->Connection
+2) Create New connection
+3) Choose ZohoOAuth Service
+4) Enter connection name and connection link name
+5) Choose desk related scopes
+6) Create and Connect then replace connection linkname in code instead “deskoperation”
+
+SCOPE :Desk.tickets.UPDATE
+*/
+Module : Ticket
+
+Argument:
+
+Name : ticketID - Value : Ticket Id 
+
+orgId = "644088596";//replace your orgID
+//ticketID="182208000007183001";
+followerIds = ["182208000000180005","182208000003976027"];//mentione the agent user ID here
+param=map();
+param.put("followerIds", followerIds);
+getFollowers = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/tickets/" + ticketID + "/followers"
+	type :POST
+    parameters : param.toString()
+	connection:"deskoperation"
+];

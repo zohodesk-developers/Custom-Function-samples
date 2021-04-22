@@ -1,0 +1,70 @@
+/*
+Maintain First ticket agent info captured in ticket custom field with time. Of assignment
+
+Connection Creation:
+1) Setup->Connection
+2) Create New connection
+3) Choose ZohoOAuth Service
+4) Enter connection name and connection link name
+5) Choose desk related scopes
+6) Create and Connect then replace connection linkname in code instead “deskoperation”
+
+SCOPE :Desk.tickets.UPDATE, Desk.settings.READ , Desk.basic.READ, Desk.tickets.READ
+*/
+Module : Ticket
+
+Argument:
+Name : ticketID - Value : Ticket Id
+
+Sample Code:
+
+orgId = "644088596";//replace ORGID
+getTicketHistory = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/tickets/" + ticketID + "/history"
+	type :GET
+	connection:"deskoperation"
+];
+//info getTicketHistory;
+ticketHistory = getTicketHistory.toList();
+//info ticketHistory;
+for each  history in ticketHistory
+{
+    if(history.get("name").toString().equalsIgnoreCase("RoundRobin_Updated_Ticket"))//capture the owner who assigned by RoundRobin very first
+	{
+        name1 = history.get("changes").toString().get("field");
+        agentId = history.get("changes").toString().get("newValue");
+        eventTime = history.get("eventTime");
+	}
+	if(history.get("name").toString().equalsIgnoreCase("Ticket_Updated"))//Capture the first owner info
+	{
+        name1 = history.get("changes").toString().get("field").toString();
+        if(name1.equalsIgnoreCase("Case Owner")){
+          agentId = history.get("changes").toString().get("newValue");
+          eventTime = history.get("eventTime");
+		}
+	}
+}
+info name1;
+info agentId;
+info eventTime;
+getAgentInfowihtID = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/agents/"+agentId
+	type :GET
+	connection:"deskoperation"
+];
+AgentName = getAgentInfowihtID.get("firstName") + " " + getAgentInfowihtID.get("lastName");
+AgentName = AgentName.trim();
+eventTime=eventTime.toTime().addHour(5).addMinutes(30).toString("yyyy-MM-dd HH:MM:SS");//GMT+5:30 change accodring you timezone like this
+info eventTime;
+jsonString = {"customFields":{"Agent Name":AgentName,"First Assigned Time":eventTime}};//Desk ticket Custom Field Names Agent Name and First Assigned Time 
+//info jsonString;
+updateTicket = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/tickets/" + ticketID
+	type :PATCH
+	parameters:jsonString.toString()
+	connection:"deskoperation"
+];
+info updateTicket;

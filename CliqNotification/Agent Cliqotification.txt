@@ -1,0 +1,56 @@
+/*
+This function notify agent via Cliq when ticket assigned to agent
+
+Connection Creation:
+1) Setup->Connection
+2) Create New connection
+3) Choose ZohoOAuth Service
+4) Enter connection name and connection link name
+5) Choose desk related scopes
+6) Create and Connect then replace connection linkname in code instead “deskoperation” and "cliqoperation" for 
+cliqoperation
+
+SCOPE for deskoperation : Desk.tickets.READ, Desk.settings.READ , Desk.basic.READ
+SCOPE for cliqoperation : ZohoCliq.Webhooks.CREATE
+
+
+*/
+Module : Ticket
+
+Argument:
+Name : ticketID - Value : ticket Id
+
+
+Sample Code:
+orgId = "644088596";//replace ORGID
+getTicketDetails = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/tickets/" + ticketID
+	type :GET
+	connection:"deskoperation"
+];
+assigneeId = getTicketDetails.get("assigneeId");
+info assigneeId;
+getAgentInformation = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/agents/" + assigneeId
+	type :GET
+	connection:"deskoperation"
+];
+email = getAgentInformation.get("emailId");
+info email;
+webUrl = getTicketDetails.get("webUrl");
+content = "High/Critical priority ticket assigned to you. Ticket Link : " + webUrl;
+header = Map();
+header.put("Content-Type","application/json");
+formatted_msg = {"text":content};
+response = invokeurl
+[
+	url :"https://cliq.zoho.com/api/v2/buddies/" + email + "/message"
+	type :POST
+	parameters:formatted_msg.toString()
+	headers:header
+    connection:"cliqoperation"
+];
+//replace CLIQ authtoken above
+info response;

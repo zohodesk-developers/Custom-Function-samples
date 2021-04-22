@@ -1,0 +1,92 @@
+/*
+
+To Update ticket contact based on email address present in body of email content
+
+Connection Creation:
+1) Setup->Connection
+2) Create New connection
+3) Choose ZohoOAuth Service
+4) Enter connection name and connection link name
+5) Choose desk related scopes
+6) Create and Connect then replace connection linkname in code instead “deskoperation”
+
+SCOPE : Desk.settings.READ , Desk.basic.READ , Desk.tickets.READ , Desk.tickets.UPDATE ,  
+		Desk.contacts.CREATE, Desk.search.READ , Desk.contacts.READ
+*/
+
+Module : Ticket
+
+Argument:
+Name : ticketID - Value : Ticket Id
+
+Sample Code:
+
+orgId = "644088596";
+getTicketDetails = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/tickets/" + ticketID + "/threads"
+	type :GET
+	connection:"deskoperation"
+];
+ThreadID = getTicketDetails.get("data").toString().get("id");
+getThreadDetails = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/tickets/" + ticketID + "/threads/" + ThreadID
+	type :GET
+	connection:"deskoperation"
+];
+content = getThreadDetails.get("content");
+EscalationType = content.toCollection("<");
+finalvalue = "";
+for each  myvalue in EscalationType
+{
+	mmvalue = myvalue.toString();
+    len = mmvalue.length();
+    if(mmvalue.contains("@")){
+	   temp = mmvalue.subText(mmvalue.indexOf(">") + 1);
+	   finalvalue = finalvalue + temp + "";
+	}
+}
+info finalvalue;
+Email = finalvalue.toString().trim();
+contact_name = Email.subText(0,Email.indexOf("@"));
+getcontactDetails = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/contacts/search?email=" + Email
+	type :GET
+	connection:"deskoperation"
+];
+info getcontactDetails;
+size = getcontactDetails.get("data").size();
+info size;
+if(size > 0)
+{
+	contactID = getcontactDetails.get("data").get(0).get("id");
+	info contactID;
+}
+else
+{
+	contactParam = Map();
+	contactParam.put("lastName",contact_name);
+	contactParam.put("email",Email);
+	createContact = invokeurl
+	[
+		url :"https://desk.zoho.com/api/v1/contacts"
+		type :POST
+		parameters:contactParam.toString()
+		connection:"deskoperation"
+	];
+	//info createContact;
+	contactID = createContact.get("id");
+	info contactID;
+}
+jsonString = {"contactId":contactID,"email":Email};
+//jsonString = {"customFields":{"Address":Email}};
+updateTicket = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/tickets/" + ticketID
+	type :POST
+	parameters:jsonString.toString()
+	connection:"deskoperation"
+];
+info updateTicket;

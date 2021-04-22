@@ -1,0 +1,51 @@
+/*
+Adding ticket comment while field update in ticket..we can use this script to add comment in any actions
+
+Connection Creation:
+1) Setup->Connection
+2) Create New connection
+3) Choose ZohoOAuth Service
+4) Enter connection name and connection link name
+5) Choose desk related scopes
+6) Create and Connect then replace connection linkname in code instead “deskoperation”
+
+SCOPE : Desk.settings.READ , Desk.basic.READ , Desk.tickets.READ , Desk.tickets.UPDATE
+*/
+Module : Ticket
+
+Argument:
+Name : ticketID - Value : Ticket Id
+Name : contactName - Value : Contact Name
+Name : ticketNumber - Value : Ticket number
+
+Sample Code:
+
+orgId = "644088596";//replace OrgID
+getTicketDetails = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/tickets/" + ticketID
+	type :GET
+	connection:"deskoperation"
+];
+agentID = getTicketDetails.get("assigneeId");
+info agentID;
+getAgentDetails = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/agents/" + agentID
+	type :GET
+	connection:"deskoperation"
+];
+AgentZuid = getAgentDetails.get("zuid");
+info AgentZuid;
+Content = "zsu[@user:" + AgentZuid + "]zsu " + contactName + " Reply your ticket #" + ticketNumber + " .Please check and update";//comment Content
+param = Map();
+param.put("isPublic","false");
+param.put("content",Content);
+createTicketCommnet = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/tickets/" + ticketID + "/comments"
+	type :POST
+	parameters:param.toString()
+	connection:"deskoperation"
+];
+info createTicketCommnet;

@@ -1,0 +1,82 @@
+*/
+To update agent working  time with agent name in ticket custom field
+
+Connection Creation:
+1) Setup->Connection
+2) Create New connection
+3) Choose ZohoOAuth Service
+4) Enter connection name and connection link name
+5) Choose desk related scopes
+6) Create and Connect then replace connection linkname in code instead “deskoperation”
+
+SCOPE : Desk.settings.READ , Desk.basic.READ, Desk.tickets.UPDATE
+*/
+
+PreRequest:
+
+Agent Tracker - Must be a Multi Line Text Field
+Latest Assigned Time - DATE TIME TYPE Field
+
+Module : Ticket
+
+Argument:
+Name : ticketID - Value : Ticket Id
+Name : teamOwner - Value : Team
+Name : agentInfo - Value : Agent Tracker
+Name : ticketOwner - Value : Ticket Owner
+Name : oldTime - Value : Latest Assigned Time
+
+Sample Code:
+ORGID = 644088596;
+createdTime = zoho.currenttime.toString("dd-MM-yyyy HH:mm:ss","GMT+5:30");
+currentTime = zoho.currenttime.toString("yyyy-MM-dd'T'HH:mm:ss'.000Z'","GMT+5:30");
+info createdTime;
+info currentTime;
+if(oldTime.toString() == "" || oldTime.toString() == null)
+{
+	oldTime = createdTime;
+}
+if(teamOwner != null && teamOwner != "")
+{
+	getTeamInfo = invokeurl
+	[
+		url :"https://desk.zoho.com/api/v1/teams/" + teamOwner.trim()
+		type :GET
+		connection : “deskoperation”
+	];
+	teamName = getTeamInfo.get("name");
+}
+else
+{
+	teamName = "";
+}
+if(ticketOwner == null || ticketOwner == "")
+{
+	ticketOwner = teamName;
+}
+else
+{
+	ticketOwner = teamName + " " + ticketOwner;
+}
+if(agentInfo == null || agentInfo == "")
+{
+	agentInfo = "\n" + ticketOwner.trim() + " - From : " + oldTime + " - To : " + createdTime;
+}
+else
+{
+	// if(agentInfo.getOccurenceCount(ticketOwner) <= 0)
+	// {
+	agentInfo = agentInfo + ",\n" + ticketOwner.trim() + " - From : " + oldTime + " - To : " + createdTime;
+	//}
+}
+jsonString = {"cf":{"cf_agent_tracker":agentInfo,"cf_latest_assigned_time":currentTime}};
+//replace attachmentsLinks with custom multiline text field name
+//info jsonString;
+UpdateTicket = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/tickets/" + ticketID
+	type :PATCH
+	parameters:jsonString + ""
+	connection : “deskoperation”
+];
+info UpdateTicket;

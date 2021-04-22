@@ -1,0 +1,65 @@
+/*
+This function search specific keyword present in incoming thread content and assign to specific agent
+
+Connection Creation:
+1) Setup->Connection
+2) Create New connection
+3) Choose ZohoOAuth Service
+4) Enter connection name and connection link name
+5) Choose desk related scopes
+6) Create and Connect then replace connection linkname in code instead “deskoperation”
+
+SCOPE : Desk.settings.READ , Desk.basic.READ , Desk.tickets.READ , Desk.tickets.UPDATE
+*/
+Module : Ticket
+
+Argument :
+
+Name : ticketID - Value : Ticket Id
+
+Sample code:
+
+ORGID = "644088596";//replace ORGID
+searchKey = {"1425 Alvarado","936 24th","4017 28th","Masselin","1935 Washington","1155 36th","1449 Point View","4723 August","4725 August","1800 Oak St","721 New Depot","977 Hill St","700 Echo Park","1406 Golden Gate","287 Amalfi Dr","712  Vendome","432 Solano","4028 Palmwood","212 Ave 58","2379 Glendale Blvd","4313 160th","2110 India","1622 Morton","1536 Lemoyne","1642 Echo Park","1650 Lucretia","529 W 17th St","2112 India"};//must specified search key
+param = List();
+param.addAll(searchKey);
+currentAgent=AgentEmailAddress;
+getTicket = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/tickets/" + ticketID + "/threads"
+	type :GET
+	connection:"deskoperation"
+];
+//info getTicket;
+latestThreadID = getTicket.get("data").get(0).get("id");
+//info latestThreadID;
+getTicketThread = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/tickets/" + ticketID + "/threads/" + latestThreadID
+	type :GET
+	connection:"deskoperation"
+];
+//info getTicketThread;
+ThreadContent = getTicketThread.get("content");
+ThreadContent = ThreadContent.toString();
+getAllAgents = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/agents?searchStr="+ encodeUrl(currentAgent)
+	type :GET
+	connection:"deskoperation"
+];
+assigneeID = getAllAgents.get("id");
+for each  searchstring in param
+{
+	if(ThreadContent.getOccurenceCount(searchstring) > 0)
+	{
+	jsonString = {"assigneeId":assigneeID};
+	updateTicketOwner = invokeurl
+	[
+		url :"https://desk.zoho.com/api/v1/tickets/" + ticketID
+		type :PATCH
+		parameters:jsonString.toString()
+		connection:"deskoperation"
+	];
+	}
+}

@@ -1,0 +1,101 @@
+/*
+To update CRM Account Owner as ticket owner
+
+Connection Creation:
+1) Setup->Connection
+2) Create New connection
+3) Choose ZohoOAuth Service
+4) Enter connection name and connection link name
+5) Choose desk related scopes
+6) Create and Connect then replace connection linkname in code instead “deskoperation”
+
+SCOPE : Desk.settings.READ , Desk.basic.READ , Desk.tickets.READ , Desk.tickets.UPDATE,  Desk.contacts.READ
+*/
+
+Module : Tickets
+Execute on : Create
+Actions : Associate the below custom function
+
+Arguments :
+contactID - Contact Id from Contact Information
+ticketID - Ticket Id from Ticket Information
+email - Email from contact information
+
+Sample Code:
+
+ORGID = "644088596";//replace your ORGID
+getContactDetails = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/contacts/" + contactID
+	type :GET
+	connection : “deskoperation”
+];
+crmContact = getContactDetails.get("zohoCRMContact");
+//info crmContact;
+owneremail="";
+if(crmContact != "" && crmContact != null)
+{
+	crmContactID = crmContact.get("id");
+	getCrmAccountID = zoho.crm.getRecordById("Contacts",crmContactID);
+	//info getCrmAccountID;
+	accountID = getCrmAccountID.get("Account_Name").get("id");
+	//info accountID;
+	getCrmAccountDetails = zoho.crm.getRecordById("Accounts",accountID);
+	info getCrmAccountDetails;
+	ownerid = getCrmAccountDetails.get("Owner").get("id");
+    userlist = zoho.crm.invokeConnector("crm.getusers",{"type":"ActiveUsers"}).get("response").get("users");
+    for each  rec in userlist
+	{
+		userid = rec.get("id");
+		if(userid == ownerid)
+		{
+			owneremail = rec.get("email");
+		}
+	}
+    info owneremail;
+}
+else 
+{
+continfo = zoho.crm.searchRecords("Contacts","(Email:equals:" + email + ")");
+info continfo;
+if(continfo.size() > 0)
+{
+	accountId = continfo.get(0).get("Account_Name").get("id").toLong();
+	getAccountInfo = zoho.crm.getRecordById("Accounts",accountId);
+	//info getAccountInfo;
+    ownerid = getAccountInfo.get("Owner").get("id");
+	info ownerid;
+	userlist = zoho.crm.invokeConnector("crm.getusers",{"type":"ActiveUsers"}).get("response").get("users");
+	for each  rec in userlist
+	{
+		userid = rec.get("id");
+		if(userid == ownerid)
+		{
+			owneremail = rec.get("email");
+		}
+	}
+}
+}
+if(owneremail != "" && owneremail != null) 
+{
+getDeskAgents = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/agents?searchStr=" + encodeUrl(owneremail)
+	type :GET
+	connection : “deskoperation”
+];
+// get corresponding Desk agent ID
+assigneeID = getDeskAgents.get("data").get("id");
+info assigneeID;
+if(assigneeID != null && assigneeID != "" && assigneeID != "null")
+{
+	jsonString = {"assigneeId":assigneeID};
+	updateTicketAgent = invokeurl
+	[
+		url :"https://desk.zoho.com/api/v1/tickets/" + ticketID
+		type : PATCH
+		parameters:jsonString.toString()
+		connection : “deskoperation”
+	];
+}
+}

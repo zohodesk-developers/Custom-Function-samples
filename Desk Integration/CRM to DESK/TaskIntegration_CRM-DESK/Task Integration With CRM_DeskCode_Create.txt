@@ -1,0 +1,117 @@
+/*
+When Task created in desk it will create a task in CRM. Customer must create one CUSTOM FIELD in TASKS module with name "DeskTaskID" in CRM END
+
+Connection Creation:
+1) Setup->Connection
+2) Create New connection
+3) Choose ZohoOAuth Service
+4) Enter connection name and connection link name
+5) Choose desk related scopes
+6) Create and Connect then replace connection linkname in code instead “deskoperation”
+
+SCOPE  - deskoperation : Desk.activities.READ , Desk.activities.tasks.READ , Desk.settings.READ , Desk.basic.READ ,  Desk.contacts.READ , Desk.activities.UPDATE 
+, Desk.activities.tasks.UPDATE
+
+SCOPE  - crmoperation :  ZohoCRM.users.ALL , ZohoCRM.modules.ALL
+
+WorkFlow:
+
+Module Tasks
+Event : OnCreate
+criteria : none
+Action : Choose custom Function - > New
+*/
+
+For Custom Function:
+
+Module : Tasks
+
+Argument:
+Name : taskID  -  Value : TaskId 
+
+Sample code:
+
+tID = taskID.toString();
+ORGID = "644088596";
+//Your ORGID
+getContactDetails = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/tasks/" + taskID + "?include=tickets"
+	type :GET
+	connection : "deskoperation"
+];
+subj = getContactDetails.get("subject");
+dueDate = getContactDetails.get("dueDate");
+ticketNumber = getContactDetails.get("ticket").get("ticketNumber");
+ticketID = getContactDetails.get("ticketId");
+ownerID = getContactDetails.get("ownerId");
+contactid = getContactDetails.get("ticket").get("contact").get("id");
+priority = getContactDetails.get("priority");
+description = getContactDetails.get("description");
+category = getContactDetails.get("category");
+status = getContactDetails.get("status");
+//info dueDate;
+dueDate = dueDate.toDate().toString("yyyy-MM-dd");
+//info dueDate;
+getDeskAgents = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/agents/"ownerID
+	type :GET
+	connection : "deskoperation"
+];
+// get corresponding Desk agent ID
+AgentEmail = getDeskAgents.get("emailId");
+getCRMUsers = invokeurl
+[
+	url :"https://www.zohoapis.com/crm/v2/users?type=AllUsers"
+	type :GET
+	connection : "crmoperation"
+];
+info getCRMUsers;
+crmOwnerId = getCRMUsers.get("/users/user[@email=\"" + AgentEmail + "\"]/@id").get("/id/text()");
+info crmOwnerId;
+//gettaskDetails = zoho.crm.getRecordById("Tasks",2518419000001013001);
+//info gettaskDetails;
+getContactDetails1 = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/contacts/" + contactid
+	type :GET
+	connection : "deskoperation"
+];
+response = getContactDetails1.get("zohoCRMContact").get("id");
+//info response;
+crmContactID = response;
+contactDetails = zoho.crm.getRecordById("Contacts",crmContactID.toLong());
+accountID = contactDetails.get("Account_Name").get("id");
+//info accountID;
+//info crmContactID;
+leadMap = Map();
+leadMap.put("Subject",subj.trim());
+leadMap.put("Status",status);
+leadMap.put("Priority",priority);
+leadMap.put("Due_Date",dueDate);
+leadMap.put("Category",category);
+leadMap.put("Who_Id",crmContactID);
+//mondatory
+leadMap.put("What_Id",accountID);
+//mondatory
+leadMap.put("Owner_ID",crmOwnerId);
+leadMap.put("$se_module","Accounts");
+//mondatory
+leadMap.put("Description",description);
+leadMap.put("DeskTaskID",tID);
+//Must create custom Field in Task Module with name DeskTaskID
+info leadMap;
+createLead = zoho.crm.create("Tasks",leadMap);
+info createLead;
+crmTaskID = createLead.get("id").toString();
+//info crmTaskID;
+jsonString = {"customFields":{"CrmTaskID":crmTaskID}};
+updateTask = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/tasks/" + taskID
+	type :PATCH
+	parameters:jsonString.toString()
+	connection : "deskoperation"
+];
+//info updateTask;

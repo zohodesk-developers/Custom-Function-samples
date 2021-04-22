@@ -1,0 +1,50 @@
+/*
+Ticket reopen if any associated task incomplete..
+
+Connection Creation:
+1) Setup->Connection
+2) Create New connection
+3) Choose ZohoOAuth Service
+4) Enter connection name and connection link name
+5) Choose desk related scopes
+6) Create and Connect then replace connection linkname in code instead “deskoperation”
+
+SCOPE : Desk.activities.READ , Desk.activities.tasks.READ, Desk.tickets.UPDATE
+*/
+
+Module : Ticket
+
+Argument:
+Name : ticketID  -  Value : Ticket Id
+
+Sample Code:
+
+ORGID = 644088596;
+getTicketTasks = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/tickets/" + ticketID + "/tasks?isCompleted=false"
+	type :GET
+	connection:"deskoperation"
+];
+pendingTasks = getTicketTasks.get("data");
+if(pendingTasks.get("data").size() > 0)
+{
+	jsonString = {"status":"Open"};
+	openTicketResponse = invokeurl
+	[
+		url :"https://desk.zoho.com/api/v1/tickets/" + ticketID
+		type :PATCH
+		parameters:jsonString.toString()
+		connection:"deskoperation"
+	];
+}
+else
+{
+	sendmail
+	[
+		from :zoho.adminuserid
+		to :tomail
+		subject :" Your ticket " + ticketnumber + " has been Closed"
+		message :"<div>Dear " + cname + "<br></div><div><br></div><div>Your ticket " + ticketnumber + " has been Closed.<br></div><div><br></div><div>We hope that we've helped you to the best of your satisfaction. To re-open this ticket simply reply to this email.<br></div><div><br></div><div>Regards,<br></div><div>Sample Support Team.<br></div>"
+	]
+}

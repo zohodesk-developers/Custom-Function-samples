@@ -1,0 +1,80 @@
+/*
+Desk  project integration.After bug field get bug information from project and update info into 
+desk fields
+
+Connection Creation:
+1) Setup->Connection
+2) Create New connection
+3) Choose ZohoOAuth Service
+4) Enter connection name and connection link name
+5) Choose desk related scopes
+6) Create and Connect then replace connection linkname in code instead “deskoperation”
+
+SCOPE :Desk.tickets.UPDATE, Desk.tickets.READ
+*/
+Module : Ticket
+
+Argumment:
+Name  : bugID  - Value : ticket Id
+
+Sample  code:
+ORGID = 644088596;
+//bug and desk status mapping
+StatusMapping = Map();
+StatusMapping.put("Onhold","On Hold");
+StatusMapping.put("To be tested","Verified");
+StatusMapping.put("Move to Live","Updated Live");
+StatusMapping.put("Closed","Closed");
+StatusMapping.put("ReOpen","Open");
+//bug project and Id mapping for get project name
+ProjectMapping = Map();
+ProjectMapping.put("220220000000551","project name 1");
+ProjectMapping.put("220220000000552","project name 2");
+ProjectMapping.put("220220000000553","project name 3");
+getBugTicket = invokeurl
+[
+	url :"https://desk.zoho.com/api/v1/bug/" + bugID + "/tickets"
+	type :GET
+	connection:"deskoperation"
+];
+TicketList = getBugTicket.get("data");
+count = getBugTicket.get("data").size();
+if(count > 0)
+{
+	ticketId = getBugTicket.get("data").get(0).get("id");
+	bug = invokeurl
+	[
+		url :"https://desk.zoho.com/api/v1/tickets/" + ticketId + "/bug"
+		type :GET
+		connection:"deskoperation"
+	];
+	info bug;
+	bugdes = bug.get("description");
+	bugtitle = bug.get("title");
+	bugproid = bug.get("projectId");
+	bugkey = bug.get("key");
+	bugstatus = bug.get("status");
+	projectName = ProjectMapping.get(bugproid.trim());
+	status = StatusMapping.get(bugstatus);
+	ticketmap = Map();
+	ticketm = Map();
+	ticketm.put("cf_bugid",bugID);
+	ticketm.put("cf_bugdes",bugdes);
+	ticketm.put("cf_bugtitle",bugtitle);
+	ticketm.put("cf_bugproid",bugproid);
+	ticketm.put("cf_bugstatus",bugstatus);
+	ticketm.put("cf_project_name",projectName);
+	ticketm.put("cf_bugkey",bugkey);
+	ticketm.put("cf",ticketmap);
+	// info ticketmap;
+	for each  Ticket in TicketList
+	{
+		ticketId = Ticket.get("id");
+		updateticket = zoho.desk.update(ORGID,"tickets",ticketId,ticketm);
+		// info updateticket;
+	}
+}
+else
+{
+	info "no bug";
+}
