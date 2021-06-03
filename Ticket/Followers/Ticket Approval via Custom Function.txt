@@ -1,0 +1,57 @@
+/*
+Connection:
+Setup->Connection
+1)Create connection
+2)choose ZohoOAuth
+3)Enter connction namd and connection Link Name
+4)Choose Scope
+Scope : Desk.tickets.CREATE,Desk.tickets.READ, Desk.settings.READ , Desk.basic.READ
+5) Connect and replace "deskoperation" in code with connection link name you have given in connection creation
+
+WorkFlow:
+OnCreate/OnField Update Ticket Event
+
+Module : Ticket
+
+Argument:
+Name : ticketID - Value : Ticket Id
+Name : ticketNumber - Value : Ticket Number
+
+Sample Code:*/
+orgId = "644088596";//replace your ORGID
+//if cusotmer know about agent ID then can enter agent ID below else use the ApproverEmail concept
+listofApprovers = {"13131241242132313","31312315432212","12312121121121"};
+/*
+//ApproverEmail concept
+approverEmail={"test.b+07@zoho.com","rrmani@zoho.com","abpi@gmail.com"};
+listofApprovers=List();
+for each agentEmail in approverEmail
+{
+    GetAgentInfo = invokeurl
+    [
+	url: "https://desk.zoho.com/api/v1/agents?searchStr="+encodeUrl(agentEmail.trim())
+    	type: GET
+    	connection:"deskoperation"
+    ];
+	if ( GetAgentInfo.get("data") != "" && GetAgentInfo.get("data") != null) 
+    {
+	listofApprovers.add(GetAgentInfo.get("data").get(0).get("id"));
+	}
+}
+*/
+info listofApprovers;
+if(!listofApprovers.isEmpty())
+{
+	param = Map();
+	param.put("approverIds",listofApprovers);
+	param.put("subject","New Approval for Ticket #" + ticketNumber);
+	param.put("description","please enter required description for approval");
+	CreateTicketApproval = invokeurl
+	[
+		url :"https://desk.zoho.com/api/v1/tickets/" + ticketID + "/approvals"
+		type :POST
+		parameters:param + ""
+		connection:"deskoperation"
+	];
+	info CreateTicketApproval;
+}
